@@ -147,6 +147,19 @@ self-registers (Dynamic Client Registration), and runs an authorization-code + P
 > header when a bearer token fails JWT validation, so a Sanctum token would never reach the sanctum
 > guard if Passport ran first. The computed middleware already gets this right.
 
+## Token management UI (optional)
+
+A self-service Livewire + Flux page that manages **both** auth methods (generate/revoke Sanctum
+tokens and disconnect OAuth apps) ships as a publishable stub. It requires `livewire/livewire` and
+`livewire/flux` in your app:
+
+```bash
+php artisan vendor:publish --tag="mcp-kit-ui"
+```
+
+This publishes `app/Livewire/McpTokens.php` and `resources/views/livewire/mcp-tokens.blade.php` —
+wire up a route and restyle to match your app.
+
 ## Configuration
 
 `config/mcp-kit.php` — feature toggle, STDIO handle, HTTP path/throttle/middleware, the OAuth block

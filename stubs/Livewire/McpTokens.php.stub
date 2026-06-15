@@ -1,0 +1,96 @@
+<?php
+
+namespace App\Livewire;
+
+use Laravel\Passport\Token;
+use Livewire\Attributes\Computed;
+use Livewire\Component;
+
+/**
+ * Self-service MCP token management — published by laravel-mcp-kit.
+ *
+ *   php artisan vendor:publish --tag="mcp-kit-ui"
+ *
+ * Manages BOTH auth methods on one page:
+ *   - Sanctum personal access tokens (header clients: Claude Code/Desktop)
+ *   - OAuth "connected apps" (Passport tokens: claude.ai)
+ *
+ * Requires livewire/livewire and livewire/flux in the host app. Restyle to
+ * match your app; this is a starting point, not a finished screen.
+ */
+class McpTokens extends Component
+{
+    public string $tokenName = '';
+
+    /** The plaintext token, shown exactly once right after creation. */
+    public ?string $plainTextToken = null;
+
+    public function mount(): void
+    {
+        abort_unless(config('mcp-kit.enabled', true), 404);
+
+        abort_unless(
+            auth()->user()?->canAny([
+                config('mcp-kit.abilities.view-tasks', 'mcp-kit.view-tasks'),
+                config('mcp-kit.abilities.manage-tasks', 'mcp-kit.manage-tasks'),
+            ]),
+            403,
+        );
+    }
+
+    /** @return \Illuminate\Support\Collection<int, \Laravel\Sanctum\PersonalAccessToken> */
+    #[Computed]
+    public function tokens()
+    {
+        return auth()->user()->tokens()->latest()->get();
+    }
+
+    /** @return \Illuminate\Support\Collection<int, Token> */
+    #[Computed]
+    public function connectedApps()
+    {
+        if (! class_exists(Token::class)) {
+            return collect();
+        }
+
+        return Token::with('client')
+            ->where('user_id', auth()->id())
+            ->where('revoked', false)
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->latest()
+            ->get();
+    }
+
+    public function createToken(): void
+    {
+        $this->validate(['tokenName' => ['required', 'string', 'max:255']]);
+
+        $this->plainTextToken = auth()->user()
+            ->createToken($this->tokenName)
+            ->plainTextToken;
+
+        $this->reset('tokenName');
+        unset($this->tokens);
+    }
+
+    public function revoke(string $id): void
+    {
+        auth()->user()->tokens()->whereKey($id)->delete();
+        unset($this->tokens);
+    }
+
+    public function disconnect(string $tokenId): void
+    {
+        $token = Token::where('user_id', auth()->id())->find($tokenId);
+
+        $token?->refreshToken()?->update(['revoked' => true]);
+        $token?->revoke();
+
+        unset($this->connectedApps);
+    }
+
+    public function render()
+    {
+        return view('livewire.mcp-tokens');
+    }
+}

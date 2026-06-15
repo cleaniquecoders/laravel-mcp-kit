@@ -29,6 +29,14 @@ class LaravelMcpKitServiceProvider extends PackageServiceProvider
     {
         $this->configureOAuth();
 
+        // Publishable Livewire + Flux token-management UI (optional).
+        // Requires livewire/livewire + livewire/flux in the host app:
+        //   php artisan vendor:publish --tag="mcp-kit-ui"
+        $this->publishes([
+            __DIR__.'/../stubs/Livewire/McpTokens.php.stub' => app_path('Livewire/McpTokens.php'),
+            __DIR__.'/../stubs/views/mcp-tokens.blade.php.stub' => resource_path('views/livewire/mcp-tokens.blade.php'),
+        ], 'mcp-kit-ui');
+
         // Register the MCP servers (STDIO + HTTP) declared in routes/ai.php.
         // Guarded on the route cache so a cached HTTP route table is not
         // mutated at boot. In your own app you would instead load this from

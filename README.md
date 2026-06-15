@@ -1,24 +1,20 @@
 # Laravel MCP Kit
 
-[![Tests](https://img.shields.io/badge/tests-13%20passing-brightgreen)](.)
+[![Tests](https://img.shields.io/badge/tests-30%20passing-brightgreen)](.)
 [![Laravel MCP](https://img.shields.io/badge/laravel%2Fmcp-%5E0.8-orange)](https://github.com/laravel/mcp)
 
-A small, **teaching-grade** Model Context Protocol (MCP) server for Laravel, built on the
-official [`laravel/mcp`](https://github.com/laravel/mcp) package. It exposes a tiny task-management
-domain to AI agents (Claude Code, Claude Desktop, claude.ai) and demonstrates — in the least code
-possible — the patterns you need for a **production** MCP server:
+A **reusable starter package** for adding a Model Context Protocol (MCP) server to your Laravel
+projects, built on the official [`laravel/mcp`](https://github.com/laravel/mcp) package. It ships a
+small task-management domain as a working reference and gives you, ready to copy or extend, the
+patterns a production MCP server needs:
 
 - **Tools** (read + write), **Resources** (read-by-URI context), and **Prompts** (reusable templates)
 - **Per-tool authorization** via Gate abilities — MCP is a third UI, never a back door
 - **uuid-only** inputs/outputs — the internal auto-increment id never leaks to the agent
 - **Write tools funnel through Action classes** — the agent, the web UI and the CLI share one set of business rules
-- **STDIO** (local) and **Streamable HTTP** (remote, authenticated) transports
+- **STDIO** (local) and **Streamable HTTP** (remote) transports
+- **Two HTTP auth methods** — Sanctum personal access tokens *and* OAuth 2.1 (Passport) — on one endpoint
 - **Honest annotations** (`#[IsReadOnly]`) so clients know which tools change state and gate them
-
-It is the companion package to the *Claude Code + MCP with Laravel* 2-day training. It is intentionally
-distilled from a production gateway-management server, so every pattern here scales up.
-
-> This is a **private** training/reference package. Not published to Packagist.
 
 ---
 
@@ -93,22 +89,78 @@ No authentication: implicit OS-user trust. Best for local development.
 
 ### Streamable HTTP (remote — authenticated)
 
-The package registers an authenticated HTTP endpoint at `POST /mcp/tasks` (configurable). Issue a
-Sanctum token for a user who holds the abilities, then:
+The package registers an authenticated HTTP endpoint at `POST /mcp/tasks` (configurable). It supports
+**two auth methods on the same endpoint** — pick whichever your client can use.
+
+#### Method 1 — personal access token (Sanctum)
+
+For clients that can send a custom header (Claude Code / Desktop). Issue a token for a user who holds
+the abilities:
+
+```bash
+php artisan mcp-kit:token user@example.com --name="my-laptop"
+```
+
+The command prints a ready-to-paste command:
 
 ```bash
 claude mcp add --transport http mcp-kit https://your-app.test/mcp/tasks \
   --header "Authorization: Bearer <token>"
 ```
 
-To support external clients that cannot send custom headers (claude.ai connectors), add Passport
-OAuth 2.1 and switch the middleware to `auth:sanctum,api` (see the training Day-2 auth lab). **Order
-matters: `sanctum` before `api`.**
+#### Method 2 — OAuth 2.1 (Passport)
+
+For connectors that **cannot** send custom headers (claude.ai). The client discovers the server,
+self-registers (Dynamic Client Registration), and runs an authorization-code + PKCE flow.
+
+1. Install and set up Passport in your app, then publish its migrations and generate keys:
+   ```bash
+   composer require laravel/passport
+   php artisan vendor:publish --tag=passport-migrations
+   php artisan migrate
+   php artisan passport:keys
+   ```
+2. Turn on the OAuth transport:
+   ```dotenv
+   MCP_KIT_WEB_OAUTH_ENABLED=true
+   ```
+   The package then registers `Mcp::oauthRoutes()` and switches the endpoint middleware to
+   `auth:sanctum,api`. It auto-wires an `api` (Passport) guard only if your `config/auth.php` has not
+   already defined one.
+3. Allow Claude's redirect domains in the published `config/mcp.php`:
+   ```php
+   'redirect_domains' => ['https://claude.ai', 'https://claude.com', 'http://localhost'],
+   ```
+4. (Optional) Publish and wire a consent screen — Passport 13 ships none:
+   ```bash
+   php artisan vendor:publish --tag="mcp-kit-views"
+   ```
+   ```php
+   \Laravel\Passport\Passport::authorizationView('mcp-kit::authorize');
+   ```
+5. Connect — no header needed; Claude drives the OAuth flow:
+   ```bash
+   claude mcp add --transport http mcp-kit https://your-app.test/mcp/tasks
+   ```
+
+> **Guard order matters: `sanctum` before `api`.** Passport's token guard strips the `Authorization`
+> header when a bearer token fails JWT validation, so a Sanctum token would never reach the sanctum
+> guard if Passport ran first. The computed middleware already gets this right.
 
 ## Configuration
 
-`config/mcp-kit.php` — feature toggle, STDIO handle, HTTP path + middleware, ability names. Every
-value is env-overridable (`MCP_KIT_*`).
+`config/mcp-kit.php` — feature toggle, STDIO handle, HTTP path/throttle/middleware, the OAuth block
+(`web.oauth.enabled` + token lifetimes), and ability names. Every value is env-overridable
+(`MCP_KIT_*`). Key flags:
+
+| Env | Default | Purpose |
+|---|---|---|
+| `MCP_KIT_ENABLED` | `true` | Master switch — when off, no routes are registered |
+| `MCP_KIT_WEB_OAUTH_ENABLED` | `false` | Adds the OAuth 2.1 transport and the `api` guard |
+| `MCP_KIT_WEB_THROTTLE` | `60,1` | Rate limit on the HTTP endpoint |
+
+The HTTP middleware is computed automatically: `auth:sanctum` when OAuth is off, `auth:sanctum,api`
+when on. Set `web.middleware` to an explicit array to take full control.
 
 ## Testing
 

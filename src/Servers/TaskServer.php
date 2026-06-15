@@ -24,7 +24,7 @@ use Laravel\Mcp\Server\Attributes\Version;
 #[Name('mcp-kit')]
 #[Version('1.0.0')]
 #[Instructions(<<<'INSTRUCTIONS'
-MCP Kit — a demo task-management server for the Claude Code + MCP training.
+MCP Kit — a task-management MCP server for Laravel.
 
 Conventions:
 - Identify a task by its `uuid` only — never an internal numeric id.

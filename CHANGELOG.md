@@ -4,7 +4,7 @@ All notable changes to `cleaniquecoders/laravel-mcp-kit` will be documented in t
 
 ## 1.0.0 - Unreleased
 
-Initial release — the training/reference MCP server.
+Initial release.
 
 - Task domain: `Task` model (dual-key uuid/id), `TaskStatus` enum, migration, factory.
 - MCP server `TaskServer` with `#[Instructions]`.
@@ -12,5 +12,6 @@ Initial release — the training/reference MCP server.
 - `task_board` resource and `triage_runbook` prompt.
 - Per-tool Gate authorization through the `McpKitTool` base; uuid-only payloads.
 - STDIO + authenticated HTTP transports via `routes/ai.php`.
-- `mcp-kit:demo` seed command.
-- Pest suite (13 tests) covering schema, authorization, and side-effects.
+- Two HTTP auth methods: Sanctum personal access tokens and OAuth 2.1 (Passport).
+- `mcp-kit:demo` seed command and `mcp-kit:token` token-issuing command.
+- Pest suite covering schema, authorization, side-effects, and dual auth.

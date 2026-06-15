@@ -7,14 +7,14 @@ use CleaniqueCoders\LaravelMcpKit\Models\Task;
 use Illuminate\Console\Command;
 
 /**
- * Seeds a handful of demo tasks so the labs have something for the MCP
- * read tools to return. Idempotent-ish: pass --fresh to wipe first.
+ * Seeds a handful of demo tasks so the MCP read tools have something to
+ * return. Idempotent-ish: pass --fresh to wipe first.
  */
 class SeedDemoTasksCommand extends Command
 {
     protected $signature = 'mcp-kit:demo {--fresh : Delete existing tasks first}';
 
-    protected $description = 'Seed demo tasks for the MCP Kit training labs';
+    protected $description = 'Seed demo tasks so the MCP read tools have something to return';
 
     public function handle(): int
     {

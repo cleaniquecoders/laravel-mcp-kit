@@ -3,8 +3,8 @@
 namespace CleaniqueCoders\LaravelMcpKit\Enums;
 
 /**
- * The lifecycle of a task. Kept deliberately small so the training can
- * focus on MCP mechanics, not domain modelling.
+ * The lifecycle of a task. Kept deliberately small so the reference domain
+ * stays focused on MCP mechanics, not domain modelling.
  */
 enum TaskStatus: string
 {

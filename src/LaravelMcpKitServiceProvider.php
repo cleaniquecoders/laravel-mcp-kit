@@ -2,6 +2,7 @@
 
 namespace CleaniqueCoders\LaravelMcpKit;
 
+use CleaniqueCoders\LaravelMcpKit\Commands\IssueTokenCommand;
 use CleaniqueCoders\LaravelMcpKit\Commands\SeedDemoTasksCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -18,7 +19,8 @@ class LaravelMcpKitServiceProvider extends PackageServiceProvider
             ->name('mcp-kit')
             ->hasConfigFile()
             ->hasMigration('create_mcp_kit_tasks_table')
-            ->hasCommand(SeedDemoTasksCommand::class);
+            ->hasCommand(SeedDemoTasksCommand::class)
+            ->hasCommand(IssueTokenCommand::class);
     }
 
     public function packageBooted(): void

@@ -1,0 +1,9 @@
+parameters:
+    level: 5
+    paths:
+        - src
+        - database
+    tmpDir: build/phpstan
+    # config/ is intentionally not analysed: Laravel config files legitimately
+    # call env() at the top level, which larastan's noEnvCallsOutsideOfConfig
+    # rule flags for a package (it only whitelists an app's config directory).

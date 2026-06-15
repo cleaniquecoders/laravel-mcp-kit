@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Mcp\Server\McpServiceProvider;
+use Laravel\Sanctum\SanctumServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
@@ -36,6 +37,8 @@ class TestCase extends Orchestra
             // callback that copies tool arguments into the injected Request.
             // Testbench does not auto-load it, so we must list it explicitly.
             McpServiceProvider::class,
+            // Registers the `sanctum` auth driver used by the HTTP endpoint.
+            SanctumServiceProvider::class,
             LaravelMcpKitServiceProvider::class,
         ];
     }
@@ -47,6 +50,9 @@ class TestCase extends Orchestra
         // Resolve the demo User fixture as the auth provider model so the
         // mcp-kit:token command finds users via config('auth.providers.users.model').
         config()->set('auth.providers.users.model', User::class);
+
+        // Define the `sanctum` guard the HTTP endpoint authenticates with.
+        config()->set('auth.guards.sanctum', ['driver' => 'sanctum', 'provider' => 'users']);
 
         // Load the package migration (kept as a .php.stub for publishing).
         foreach (File::allFiles(__DIR__.'/../database/migrations') as $migration) {

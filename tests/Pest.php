@@ -1,9 +1,14 @@
 <?php
 
 use CleaniqueCoders\LaravelMcpKit\Tests\Fixtures\User;
+use CleaniqueCoders\LaravelMcpKit\Tests\OAuthTestCase;
 use CleaniqueCoders\LaravelMcpKit\Tests\TestCase;
 
-uses(TestCase::class)->in(__DIR__);
+uses(TestCase::class)->in('Feature');
+
+// OAuth flow tests need the server booted with OAuth on (Passport guard +
+// oauthRoutes), so they live in their own tree under tests/OAuth.
+uses(OAuthTestCase::class)->in('OAuth');
 
 /**
  * A user that can read tasks (view) but cannot write.

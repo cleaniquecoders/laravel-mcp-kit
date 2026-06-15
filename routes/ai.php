@@ -2,6 +2,7 @@
 
 use CleaniqueCoders\LaravelMcpKit\Servers\TaskServer;
 use Laravel\Mcp\Facades\Mcp;
+use Laravel\Passport\Passport;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,7 +33,25 @@ if (config('mcp-kit.local.enabled', true)) {
 // header when a bearer token fails JWT validation, so a Sanctum token
 // would never reach the sanctum guard if Passport ran first.
 if (config('mcp-kit.web.enabled', true)) {
+    $oauth = config('mcp-kit.web.oauth.enabled', false)
+        && class_exists(Passport::class);
+
+    // OAuth 2.1 discovery (RFC 9728 + RFC 8414) and Dynamic Client
+    // Registration (RFC 7591), backed by Passport. Lets header-less
+    // connectors (claude.ai) self-register and obtain a token.
+    if ($oauth) {
+        Mcp::oauthRoutes();
+    }
+
+    // Compute the guard stack unless the host overrode it. With OAuth on
+    // we accept either a Sanctum token or a Passport token — `sanctum`
+    // first, for the header-stripping reason above.
+    $middleware = config('mcp-kit.web.middleware') ?? [
+        $oauth ? 'auth:sanctum,api' : 'auth:sanctum',
+        'throttle:'.config('mcp-kit.web.throttle', '60,1'),
+    ];
+
     Mcp::web(config('mcp-kit.web.path', 'mcp/tasks'), TaskServer::class)
-        ->middleware(config('mcp-kit.web.middleware', ['auth:sanctum', 'throttle:60,1']))
+        ->middleware($middleware)
         ->name('mcp-kit.tasks');
 }

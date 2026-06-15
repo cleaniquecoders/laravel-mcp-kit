@@ -39,16 +39,39 @@ return [
     |
     | The HTTP endpoint remote clients connect to. ALWAYS authenticated —
     | every tool is an agent-invokable endpoint, so the route is a new
-    | attack surface. Use `auth:sanctum` for internal clients you own both
-    | ends of; switch to `auth:sanctum,api` once you add Passport OAuth for
-    | external clients (see the README).
+    | attack surface.
+    |
+    | Two auth methods are supported on the SAME endpoint:
+    |   - Sanctum personal access tokens (header clients: Claude Code/Desktop)
+    |   - OAuth 2.1 via Passport (header-less connectors: claude.ai)
+    |
+    | When `oauth.enabled` is true the middleware becomes `auth:sanctum,api`
+    | (Passport adds the `api` guard) and `Mcp::oauthRoutes()` is registered.
+    | Otherwise it stays token-only (`auth:sanctum`). Set `middleware`
+    | explicitly to override the computed default entirely.
     |
     */
 
     'web' => [
         'enabled' => env('MCP_KIT_WEB_ENABLED', true),
         'path' => env('MCP_KIT_WEB_PATH', 'mcp/tasks'),
-        'middleware' => ['auth:sanctum', 'throttle:60,1'],
+
+        // Rate limiter applied to the endpoint, as "maxAttempts,decayMinutes".
+        'throttle' => env('MCP_KIT_WEB_THROTTLE', '60,1'),
+
+        // null => auto: ['auth:sanctum(,api)', 'throttle:<throttle>'].
+        // Provide an array to take full control of the middleware stack.
+        'middleware' => null,
+
+        'oauth' => [
+            // OFF by default — the kit works token-only out of the box.
+            // Turn on once Passport is installed and configured (see docs).
+            'enabled' => env('MCP_KIT_WEB_OAUTH_ENABLED', false),
+
+            // Token lifetimes applied to Passport when OAuth is enabled.
+            'access_token_hours' => (int) env('MCP_KIT_OAUTH_ACCESS_HOURS', 12),
+            'refresh_token_days' => (int) env('MCP_KIT_OAUTH_REFRESH_DAYS', 30),
+        ],
     ],
 
     /*

@@ -11,6 +11,16 @@ production gateway-management server. Every pattern is here on purpose; keep it 
 
 **Stack:** PHP 8.4+, Laravel 11/12/13, `laravel/mcp`, `spatie/laravel-package-tools`, Pest 4, larastan, Pint.
 
+## Commands
+
+- `composer test` — run the Pest suite. Single test: `vendor/bin/pest --filter='create_task'`;
+  one file: `vendor/bin/pest tests/Feature/WriteToolsTest.php`.
+- `composer test-coverage` — suite with coverage.
+- `composer format` — Pint (run before committing).
+- `composer analyse` — larastan, level 5 (`config/` excluded; see Gotchas).
+- `php artisan mcp-kit:demo [--fresh]` — seed demo tasks so the read tools have something to return
+  (host app only; `--fresh` wipes first). See `Commands/SeedDemoTasksCommand.php`.
+
 ## Architecture (the conventions that matter)
 
 - **MCP primitives** live in `src/`:
@@ -34,7 +44,8 @@ production gateway-management server. Every pattern is here on purpose; keep it 
 2. Output uuid/code, never `id`. Use the `*Summary()` helpers.
 3. Any state change goes through an Action class in `src/Actions/`.
 4. Tests use **Pest**, via `TaskServer::actingAs($user)->tool(Foo::class, [...])`. Assert schema +
-   auth (`assertHasErrors` for the unauthorized path) + side-effect (DB).
+   auth (`assertHasErrors` for the unauthorized path) + side-effect (DB). Grab actors from the
+   `viewer()` / `manager()` / `nobody()` helpers in `tests/Pest.php` to cover the gated paths.
 5. `composer test`, `composer format` (Pint), `composer analyse` (larastan level 5) must all pass.
 
 ## Gotchas

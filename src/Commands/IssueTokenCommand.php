@@ -70,7 +70,7 @@ class IssueTokenCommand extends Command
         $this->line('Add it to Claude with:');
         $this->newLine();
         $this->line(sprintf(
-            '  <info>claude mcp add --transport http mcp-kit %s \\</info>',
+            '  <info>claude mcp add --transport http mcp-kit %s</info> \\',
             $this->endpoint()
         ));
         $this->line(sprintf(

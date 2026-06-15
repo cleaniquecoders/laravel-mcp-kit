@@ -1,6 +1,6 @@
 {
     "name": "cleaniquecoders/laravel-mcp-kit",
-    "description": "A Laravel MCP starter kit: a task-management MCP server distilled from production patterns, for the Claude Code + MCP training.",
+    "description": "A Laravel MCP starter kit: a task-management MCP server distilled from production patterns, with token and OAuth 2.1 auth.",
     "keywords": [
         "CleaniqueCoders",
         "laravel",
@@ -45,7 +45,10 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "CleaniqueCoders\\LaravelMcpKit\\Tests\\": "tests/"
+            "CleaniqueCoders\\LaravelMcpKit\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
         }
     },
     "scripts": {
@@ -54,7 +57,13 @@
         "analyse": "vendor/bin/phpstan analyse",
         "test": "vendor/bin/pest",
         "test-coverage": "vendor/bin/pest --coverage",
-        "format": "vendor/bin/pint"
+        "format": "vendor/bin/pint",
+        "build-db": [
+            "@php -r \"file_exists('workbench/database/database.sqlite') || touch('workbench/database/database.sqlite');\"",
+            "@php vendor/bin/testbench migrate:fresh --ansi",
+            "@php vendor/bin/testbench passport:keys --force --ansi"
+        ],
+        "serve": "@php vendor/bin/testbench serve"
     },
     "config": {
         "sort-packages": true,

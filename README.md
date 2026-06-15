@@ -175,6 +175,35 @@ wire up a route and restyle to match your app.
 The HTTP middleware is computed automatically: `auth:sanctum` when OAuth is off, `auth:sanctum,api`
 when on. Set `web.middleware` to an explicit array to take full control.
 
+## Try it locally (Testbench Workbench)
+
+The package ships a runnable skeleton app under `workbench/` so you can exercise the server — both
+transports and **both** auth methods — without a host app:
+
+```bash
+composer build-db   # create sqlite, migrate, seed demo data, generate Passport keys
+composer serve      # boot the app at http://localhost:8000
+```
+
+Seeded users: `manager@example.com` (read + write) and `viewer@example.com` (read only).
+
+```bash
+# STDIO
+vendor/bin/testbench mcp:start mcp-kit
+
+# Token auth — issue one and copy the printed `claude mcp add` command
+vendor/bin/testbench mcp-kit:token manager@example.com
+
+# OAuth — discovery + dynamic client registration are live:
+curl http://localhost:8000/.well-known/oauth-authorization-server
+curl -X POST http://localhost:8000/oauth/register \
+  -H "Content-Type: application/json" \
+  -d '{"client_name":"Claude","redirect_uris":["https://claude.ai/api/mcp/auth_callback"]}'
+```
+
+For the full OAuth browser flow, visit `/login` first (a demo-only auto-login) so Passport's consent
+screen has a session.
+
 ## Testing
 
 ```bash

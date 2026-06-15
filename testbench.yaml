@@ -1,0 +1,38 @@
+# Testbench Workbench — a real skeleton Laravel app for exercising the
+# MCP server end to end (STDIO + HTTP, Sanctum tokens + OAuth 2.1).
+#
+#   composer serve        # boot the app at http://localhost:8000
+#   composer build-db     # create sqlite + migrate + seed demo data
+#
+# Then connect Claude — see README "Connecting".
+
+providers:
+  - Laravel\Sanctum\SanctumServiceProvider
+  - Laravel\Passport\PassportServiceProvider
+  - Laravel\Mcp\Server\McpServiceProvider
+  - CleaniqueCoders\LaravelMcpKit\LaravelMcpKitServiceProvider
+  - Workbench\App\Providers\WorkbenchServiceProvider
+
+migrations:
+  - workbench/database/migrations
+
+seeders:
+  - Workbench\Database\Seeders\DatabaseSeeder
+
+# OAuth on so the workbench demonstrates BOTH auth methods.
+env:
+  - APP_NAME="MCP Kit Workbench"
+  - DB_CONNECTION=sqlite
+  - DB_DATABASE=workbench/database/database.sqlite
+  - MCP_KIT_WEB_OAUTH_ENABLED=true
+
+workbench:
+  start: '/'
+  install: true
+  discovers:
+    web: true
+    api: false
+    commands: true
+  build:
+    - create-sqlite-db
+    - migrate-refresh

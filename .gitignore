@@ -27,6 +27,8 @@ _ide_helper_models.php
 # Misc
 phpunit.xml
 phpstan.neon
-testbench.yaml
 /docs
 /coverage
+
+# Workbench (testbench.yaml IS tracked; the local sqlite DB is not)
+workbench/database/*.sqlite

@@ -7,6 +7,7 @@ use CleaniqueCoders\LaravelMcpKit\Enums\TaskStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * A task in the demo MCP server.
@@ -21,8 +22,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $description
  * @property TaskStatus $status
  * @property string|null $assignee
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 class Task extends Model
 {

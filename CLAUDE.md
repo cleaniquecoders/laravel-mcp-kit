@@ -1,13 +1,13 @@
 # CLAUDE.md
 
-Guidance for Claude Code when working in the **Laravel MCP Kit** package. This file doubles as the
-worked example for the training's *context engineering* module — it is deliberately short, specific,
-and high-signal.
+Guidance for Claude Code when working in the **Laravel MCP Kit** package.
 
 ## What this is
 
-A teaching-grade MCP server (`laravel/mcp` ^0.8) exposing a tiny **task** domain. Distilled from a
-production gateway-management server. Every pattern is here on purpose; keep it minimal.
+A **reusable starter package** you drop into your own Laravel projects to bootstrap an MCP server
+fast — distilled from production patterns. It ships a small **task** domain as a working reference;
+the value is the patterns (gated tools, Actions, uuid-only output, token + OAuth auth) ready to copy
+or extend. Keep it production-quality and high-signal, not minimal-for-its-own-sake.
 
 **Stack:** PHP 8.4+, Laravel 11/12/13, `laravel/mcp`, `spatie/laravel-package-tools`, Pest 4, larastan, Pint.
 

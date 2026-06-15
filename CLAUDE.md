@@ -20,6 +20,8 @@ or extend. Keep it production-quality and high-signal, not minimal-for-its-own-s
 - `composer analyse` — larastan, level 5 (`config/` excluded; see Gotchas).
 - `php artisan mcp-kit:demo [--fresh]` — seed demo tasks so the read tools have something to return
   (host app only; `--fresh` wipes first). See `Commands/SeedDemoTasksCommand.php`.
+- `php artisan mcp-kit:token {email} [--name=]` — issue a Sanctum token for the HTTP endpoint and
+  print the `claude mcp add` command. See `Commands/IssueTokenCommand.php`.
 
 ## Architecture (the conventions that matter)
 
@@ -35,7 +37,19 @@ or extend. Keep it production-quality and high-signal, not minimal-for-its-own-s
 - **Read vs write is annotated.** Read tools carry `#[IsReadOnly]`; write tools deliberately do not,
   so clients surface them as state-changing and gate them.
 - **Routes** in `routes/ai.php`, loaded by `LaravelMcpKitServiceProvider::packageBooted()`. STDIO via
-  `Mcp::local`, HTTP via `Mcp::web` (+ `auth:sanctum`, `throttle`). Both behind `config('mcp-kit.enabled')`.
+  `Mcp::local`, HTTP via `Mcp::web` (+ computed auth + `throttle`). Both behind `config('mcp-kit.enabled')`.
+
+## Auth (two methods, one endpoint)
+
+- The HTTP endpoint accepts **either** a Sanctum personal access token (header clients: Claude
+  Code/Desktop) **or** an OAuth 2.1 Passport token (header-less connectors: claude.ai).
+- OAuth is **off by default**. `MCP_KIT_WEB_OAUTH_ENABLED=true` makes `routes/ai.php` register
+  `Mcp::oauthRoutes()` and switches the computed middleware from `auth:sanctum` to `auth:sanctum,api`.
+- `configureOAuth()` in the provider wires Passport **non-destructively**: it adds the `api` guard
+  only if the host has not defined one, and sets token TTLs. Both gated on `class_exists(Passport)`.
+- Per-tool authorization is unchanged either way — the guard authenticates; `ability()` authorizes.
+- OAuth flow tests boot with OAuth on via `tests/OAuthTestCase.php` (separate `tests/OAuth/` tree, so
+  Pest's per-directory base class doesn't clash with `tests/Feature/`).
 
 ## Rules
 
@@ -61,3 +75,15 @@ or extend. Keep it production-quality and high-signal, not minimal-for-its-own-s
 
 > **Gates are the host app's job.** This package never defines `mcp-kit.*` abilities. Tests define
 > them with `Gate::define`; a real app uses its own permission system.
+
+> **Guard order: `sanctum` before `api`.** Passport's `TokenGuard` strips the `Authorization` header
+> when a bearer token fails JWT validation, so a Sanctum token never reaches the sanctum guard if
+> Passport runs first. The computed middleware (`auth:sanctum,api`) already orders it correctly.
+
+> **One token trait per model.** `Sanctum\HasApiTokens` and `Passport\HasApiTokens` cannot coexist on
+> the same model (incompatible `$accessToken` property types). Use **only** the Sanctum trait;
+> Passport's guard calls `withAccessToken()` itself.
+
+> **Passport 13 ships no migrations or consent view.** Hosts must
+> `vendor:publish --tag=passport-migrations`, `migrate`, `passport:keys`, and provide a consent view
+> (publish the `mcp-kit-ui`/`mcp-kit-views` stub and wire `Passport::authorizationView(...)`).

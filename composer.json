@@ -65,8 +65,15 @@
         ],
         "serve": [
             "@build-db",
-            "@php vendor/bin/testbench serve"
-        ]
+            "@mcp-connect",
+            "bin/serve.sh"
+        ],
+        "mcp-token": "@php vendor/bin/testbench mcp-kit:token",
+        "mcp-tokens": [
+            "@php vendor/bin/testbench mcp-kit:token manager@example.com --name=mcp-kit-manager",
+            "@php vendor/bin/testbench mcp-kit:token viewer@example.com --name=mcp-kit-viewer"
+        ],
+        "mcp-connect": "bin/connect-claude.sh"
     },
     "config": {
         "sort-packages": true,

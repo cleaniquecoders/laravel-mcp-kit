@@ -7,6 +7,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Issues a Sanctum personal access token for the HTTP (remote) transport
@@ -20,7 +21,8 @@ class IssueTokenCommand extends Command
 {
     protected $signature = 'mcp-kit:token
         {email? : The email of the user to issue a token for}
-        {--name=mcp-kit : A label for the token}';
+        {--name=mcp-kit : A label for the token}
+        {--only-token : Print only the raw token (for scripting)}';
 
     protected $description = 'Issue a Sanctum access token for the MCP Kit HTTP endpoint';
 
@@ -61,6 +63,12 @@ class IssueTokenCommand extends Command
         }
 
         $token = $user->createToken($this->option('name'))->plainTextToken;
+
+        if ($this->option('only-token')) {
+            $this->output->writeln($token, OutputInterface::VERBOSITY_QUIET);
+
+            return self::SUCCESS;
+        }
 
         $this->info('Token issued. It is shown once — copy it now.');
         $this->newLine();

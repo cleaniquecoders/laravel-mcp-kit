@@ -30,6 +30,12 @@ return [
     'local' => [
         'enabled' => env('MCP_KIT_LOCAL_ENABLED', true),
         'handle' => env('MCP_KIT_LOCAL_HANDLE', 'mcp-kit'),
+
+        // The stdio transport has no auth layer, so tools have no token
+        // holder to authorize. Set this to an email and local tools act as
+        // that user (and their Gate abilities) — needed for `mcp:start` /
+        // `mcp:inspector` to return data. Null keeps stdio tools gated.
+        'user' => env('MCP_KIT_LOCAL_USER'),
     ],
 
     /*

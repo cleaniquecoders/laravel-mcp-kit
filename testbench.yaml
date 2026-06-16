@@ -25,6 +25,9 @@ env:
   - DB_CONNECTION=sqlite
   - DB_DATABASE=workbench/database/database.sqlite
   - MCP_KIT_WEB_OAUTH_ENABLED=true
+  # Stdio has no auth layer — act as the demo manager so `mcp:start` /
+  # `mcp:inspector` return data instead of "unauthorized".
+  - MCP_KIT_LOCAL_USER=manager@example.com
   # Match bin/serve.sh so route() (used by the welcome page and the
   # mcp-kit:token CLI) prints the same host/port the server binds to.
   - APP_URL=http://127.0.0.1:8000

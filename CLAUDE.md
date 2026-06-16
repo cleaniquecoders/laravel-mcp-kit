@@ -20,8 +20,22 @@ or extend. Keep it production-quality and high-signal, not minimal-for-its-own-s
 - `composer analyse` — larastan, level 5 (`config/` excluded; see Gotchas).
 - `php artisan mcp-kit:demo [--fresh]` — seed demo tasks so the read tools have something to return
   (host app only; `--fresh` wipes first). See `Commands/SeedDemoTasksCommand.php`.
-- `php artisan mcp-kit:token {email} [--name=]` — issue a Sanctum token for the HTTP endpoint and
-  print the `claude mcp add` command. See `Commands/IssueTokenCommand.php`.
+- `php artisan mcp-kit:token {email} [--name=] [--only-token]` — issue a Sanctum token for the HTTP
+  endpoint and print the `claude mcp add` command. `--only-token` prints just the raw token (for
+  scripting). See `Commands/IssueTokenCommand.php`.
+
+**Workbench helper scripts** (composer, Testbench-only — see `bin/` and `composer.json`):
+- `composer serve` — `build-db` → `mcp-connect` → `bin/serve.sh`. One command to prepare a clean DB,
+  register the demo users in Claude, and boot on a fixed host/port.
+- `composer mcp-connect` (`bin/connect-claude.sh`) — issue a fresh token per seeded user and
+  (re)register each in Claude (`mcp-kit-manager`, `mcp-kit-viewer`). Runs `claude` with stdio detached
+  (Bun TTY-crash workaround) and is **non-fatal** so a `claude` failure never aborts serve.
+- `composer mcp-tokens` — issue tokens for both demo users without registering.
+- `composer mcp-inspect` / `mcp-inspect-web` — open the MCP Inspector (browser UI) against the
+  stdio / HTTP transport.
+- Host/port is a single source of truth: `MCP_KIT_HOST`/`MCP_KIT_PORT` (default `127.0.0.1:8000`),
+  read by both `bin/serve.sh` and `bin/connect-claude.sh`. `bin/serve.sh` pins the port so it fails
+  rather than drifting — keeping the registered URL correct.
 
 ## Architecture (the conventions that matter)
 
@@ -75,6 +89,12 @@ or extend. Keep it production-quality and high-signal, not minimal-for-its-own-s
 
 > **Gates are the host app's job.** This package never defines `mcp-kit.*` abilities. Tests define
 > them with `Gate::define`; a real app uses its own permission system.
+
+> **Stdio has no token holder.** `Mcp::local()` takes no middleware, so `$request->user()` is null over
+> stdio and every gated tool would return *unauthorized*. `McpKitTool::authorizedUser()` falls back to
+> `localUser()` — the `mcp-kit.local.user` email — **only** when `App::runningInConsole()` and no
+> request user exists, so an HTTP request that failed auth can never reach it. Null config = stdio stays
+> gated. The workbench sets `MCP_KIT_LOCAL_USER=manager@example.com`.
 
 > **Guard order: `sanctum` before `api`.** Passport's `TokenGuard` strips the `Authorization` header
 > when a bearer token fails JWT validation, so a Sanctum token never reaches the sanctum guard if

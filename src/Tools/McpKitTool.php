@@ -4,6 +4,8 @@ namespace CleaniqueCoders\LaravelMcpKit\Tools;
 
 use CleaniqueCoders\LaravelMcpKit\Models\Task;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\App;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
@@ -38,13 +40,35 @@ abstract class McpKitTool extends Tool
      */
     protected function authorizedUser(Request $request): ?Authenticatable
     {
-        $user = $request->user();
+        $user = $request->user() ?? $this->localUser();
 
         if ($user === null || ! $user->can($this->ability())) {
             return null;
         }
 
         return $user;
+    }
+
+    /**
+     * The user the stdio transport acts as, from `mcp-kit.local.user`.
+     *
+     * Only resolved over stdio (console) with no authenticated request user,
+     * so an HTTP request that failed auth can never fall through to it.
+     */
+    protected function localUser(): ?Authenticatable
+    {
+        $email = config('mcp-kit.local.user');
+
+        if ($email === null || ! App::runningInConsole()) {
+            return null;
+        }
+
+        /** @var class-string<Model> $model */
+        $model = config('auth.providers.users.model', 'App\\Models\\User');
+
+        $user = $model::query()->where('email', $email)->first();
+
+        return $user instanceof Authenticatable ? $user : null;
     }
 
     protected function unauthorized(): Response

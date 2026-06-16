@@ -4,6 +4,7 @@ namespace CleaniqueCoders\LaravelMcpKit\Servers;
 
 use CleaniqueCoders\LaravelMcpKit\Prompts\TriageRunbookPrompt;
 use CleaniqueCoders\LaravelMcpKit\Resources\TaskBoardResource;
+use CleaniqueCoders\LaravelMcpKit\Tools\AssignTaskTool;
 use CleaniqueCoders\LaravelMcpKit\Tools\CompleteTaskTool;
 use CleaniqueCoders\LaravelMcpKit\Tools\CreateTaskTool;
 use CleaniqueCoders\LaravelMcpKit\Tools\GetTaskTool;
@@ -46,6 +47,7 @@ class TaskServer extends Server
         GetTaskTool::class,
         CreateTaskTool::class,
         CompleteTaskTool::class,
+        AssignTaskTool::class,
     ];
 
     protected array $resources = [

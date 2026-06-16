@@ -73,7 +73,9 @@
             "@php vendor/bin/testbench mcp-kit:token manager@example.com --name=mcp-kit-manager",
             "@php vendor/bin/testbench mcp-kit:token viewer@example.com --name=mcp-kit-viewer"
         ],
-        "mcp-connect": "bin/connect-claude.sh"
+        "mcp-connect": "bin/connect-claude.sh",
+        "mcp-inspect": "@php vendor/bin/testbench mcp:inspector mcp-kit",
+        "mcp-inspect-web": "@php vendor/bin/testbench mcp:inspector mcp/tasks"
     },
     "config": {
         "sort-packages": true,

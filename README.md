@@ -60,7 +60,7 @@ Gate::define('mcp-kit.manage-tasks', fn ($user) => $user->isAdmin());
 | Ability | Used by |
 |---|---|
 | `mcp-kit.view-tasks` | `list_tasks`, `get_task`, `task_board` resource |
-| `mcp-kit.manage-tasks` | `create_task`, `complete_task` |
+| `mcp-kit.manage-tasks` | `create_task`, `complete_task`, `assign_task` |
 
 ## What it exposes
 
@@ -72,6 +72,7 @@ Gate::define('mcp-kit.manage-tasks', fn ($user) => $user->isAdmin());
 | `get_task` | read | view | Fetch one task by uuid |
 | `create_task` | write | manage | Creates via the `CreateTask` action |
 | `complete_task` | write | manage | Marks done via the `CompleteTask` action |
+| `assign_task` | write | manage | Assigns/clears assignee via the `AssignTask` action |
 
 **Resource** — `task_board` (`mcp-kit://tasks/board`): tasks grouped by status, read-only context.
 
@@ -85,7 +86,15 @@ Gate::define('mcp-kit.manage-tasks', fn ($user) => $user->isAdmin());
 claude mcp add mcp-kit -- php artisan mcp:start mcp-kit
 ```
 
-No authentication: implicit OS-user trust. Best for local development.
+No authentication layer: implicit OS-user trust. Best for local development.
+
+> Because stdio has no token holder, the gated tools need a user to authorize against. Set
+> `MCP_KIT_LOCAL_USER` to the email of the user the local transport should act as (and inherit the
+> abilities of). Without it, the tools return *unauthorized* over stdio.
+>
+> ```dotenv
+> MCP_KIT_LOCAL_USER=you@example.com
+> ```
 
 ### Streamable HTTP (remote — authenticated)
 
@@ -171,6 +180,7 @@ wire up a route and restyle to match your app.
 | `MCP_KIT_ENABLED` | `true` | Master switch — when off, no routes are registered |
 | `MCP_KIT_WEB_OAUTH_ENABLED` | `false` | Adds the OAuth 2.1 transport and the `api` guard |
 | `MCP_KIT_WEB_THROTTLE` | `60,1` | Rate limit on the HTTP endpoint |
+| `MCP_KIT_LOCAL_USER` | `null` | Email the stdio transport acts as (needed for gated tools over stdio) |
 
 The HTTP middleware is computed automatically: `auth:sanctum` when OAuth is off, `auth:sanctum,api`
 when on. Set `web.middleware` to an explicit array to take full control.
@@ -181,22 +191,53 @@ The package ships a runnable skeleton app under `workbench/` so you can exercise
 transports and **both** auth methods — without a host app:
 
 ```bash
-composer build-db   # create sqlite, migrate, seed demo data, generate Passport keys
-composer serve      # boot the app at http://localhost:8000
+composer serve   # one command: recreate sqlite + migrate + seed + Passport keys,
+                 # register the demo users in Claude, then boot on 127.0.0.1:8000
 ```
 
-Seeded users: `manager@example.com` (read + write) and `viewer@example.com` (read only).
+`composer serve` chains everything for you:
+
+1. `build-db` — recreate the sqlite file, `migrate:fresh` (auto-seeds via `testbench.yaml`), `passport:keys`.
+2. `mcp-connect` — issue a fresh token per seeded user and (re)register each in Claude as
+   `mcp-kit-manager` / `mcp-kit-viewer`. Non-fatal: if the `claude` CLI is absent it prints the manual
+   command and still boots.
+3. `serve.sh` — bind a **fixed** host/port (`MCP_KIT_HOST`/`MCP_KIT_PORT`, default `127.0.0.1:8000`).
+   It fails rather than drifting to another port, so the registered URL is always correct. Override
+   with `MCP_KIT_PORT=9000 composer serve`.
+
+Seeded users: `manager@example.com` (read + write) and `viewer@example.com` (read only). The workbench
+sets `MCP_KIT_LOCAL_USER=manager@example.com`, so the stdio tools work too.
+
+Helper scripts:
 
 ```bash
-# STDIO
-vendor/bin/testbench mcp:start mcp-kit
+composer mcp-token <email>   # issue one token (prints the claude mcp add command)
+composer mcp-tokens          # issue tokens for both demo users
+composer mcp-connect         # (re)register the demo users in Claude
+composer mcp-inspect         # open the MCP Inspector (browser UI) against the stdio server
+composer mcp-inspect-web     # open the MCP Inspector against the HTTP endpoint (paste a Bearer token)
+```
 
-# Token auth — issue one and copy the printed `claude mcp add` command
-vendor/bin/testbench mcp-kit:token manager@example.com
+Test it without a client — speak MCP straight to the stdio transport, or curl the HTTP endpoint:
+
+```bash
+# STDIO (acts as MCP_KIT_LOCAL_USER)
+printf '%s\n' \
+  '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"cli","version":"1"}}}' \
+  '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+  '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+  | vendor/bin/testbench mcp:start mcp-kit
+
+# HTTP (needs a Bearer token; no token → 401)
+TOKEN=$(vendor/bin/testbench mcp-kit:token manager@example.com --only-token)
+curl -X POST http://127.0.0.1:8000/mcp/tasks \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Accept: application/json, text/event-stream" -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"curl","version":"1"}}}'
 
 # OAuth — discovery + dynamic client registration are live:
-curl http://localhost:8000/.well-known/oauth-authorization-server
-curl -X POST http://localhost:8000/oauth/register \
+curl http://127.0.0.1:8000/.well-known/oauth-authorization-server
+curl -X POST http://127.0.0.1:8000/oauth/register \
   -H "Content-Type: application/json" \
   -d '{"client_name":"Claude","redirect_uris":["https://claude.ai/api/mcp/auth_callback"]}'
 ```

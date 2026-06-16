@@ -96,6 +96,14 @@ or extend. Keep it production-quality and high-signal, not minimal-for-its-own-s
 > request user exists, so an HTTP request that failed auth can never reach it. Null config = stdio stays
 > gated. The workbench sets `MCP_KIT_LOCAL_USER=manager@example.com`.
 
+> **`mcp:inspector` (stdio) is incompatible with the workbench.** It spawns `base_path('artisan')`
+> (`vendor/orchestra/testbench-core/laravel/artisan`), which never applies `testbench.yaml` — so the
+> workbench providers (gates), DB path, and env (`MCP_KIT_LOCAL_USER`) are all absent and every tool
+> returns *unauthorized*. `composer mcp-inspect` therefore runs `bin/inspect.sh`, which drives the
+> Inspector through the `testbench` wrapper (`npx @modelcontextprotocol/inspector php vendor/bin/testbench
+> mcp:start mcp-kit`) so `testbench.yaml` applies. The HTTP variant (`mcp-inspect-web`) is fine — it only
+> points the Inspector at `url(route)`, it doesn't spawn artisan.
+
 > **Guard order: `sanctum` before `api`.** Passport's `TokenGuard` strips the `Authorization` header
 > when a bearer token fails JWT validation, so a Sanctum token never reaches the sanctum guard if
 > Passport runs first. The computed middleware (`auth:sanctum,api`) already orders it correctly.

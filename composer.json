@@ -59,16 +59,20 @@
         "test-coverage": "vendor/bin/pest --coverage",
         "format": "vendor/bin/pint",
         "build-db": [
-            "@php -r \"file_exists('workbench/database/database.sqlite') || touch('workbench/database/database.sqlite');\"",
+            "@php -r \"file_exists('workbench/database/database.sqlite') && unlink('workbench/database/database.sqlite'); touch('workbench/database/database.sqlite');\"",
             "@php vendor/bin/testbench migrate:fresh --ansi",
             "@php vendor/bin/testbench passport:keys --force --ansi"
         ],
-        "serve": "@php vendor/bin/testbench serve"
+        "serve": [
+            "@build-db",
+            "@php vendor/bin/testbench serve"
+        ]
     },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
+            "php-http/discovery": true,
             "phpstan/extension-installer": true
         }
     },

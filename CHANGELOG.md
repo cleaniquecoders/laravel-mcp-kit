@@ -2,7 +2,7 @@
 
 All notable changes to `cleaniquecoders/laravel-mcp-kit` will be documented in this file.
 
-## 1.0.0 - Unreleased
+## 1.0.0 - 2026-06-17
 
 Initial release.
 

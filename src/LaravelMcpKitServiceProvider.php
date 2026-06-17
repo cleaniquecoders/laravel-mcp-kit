@@ -2,9 +2,11 @@
 
 namespace CleaniqueCoders\LaravelMcpKit;
 
+use CleaniqueCoders\LaravelMcpKit\Commands\InstallCommand;
 use CleaniqueCoders\LaravelMcpKit\Commands\IssueTokenCommand;
 use CleaniqueCoders\LaravelMcpKit\Commands\SeedDemoTasksCommand;
 use Laravel\Passport\Passport;
+use ReflectionClass;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -21,6 +23,7 @@ class LaravelMcpKitServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasViews()
             ->hasMigration('create_mcp_kit_tasks_table')
+            ->hasCommand(InstallCommand::class)
             ->hasCommand(SeedDemoTasksCommand::class)
             ->hasCommand(IssueTokenCommand::class);
     }
@@ -48,9 +51,14 @@ class LaravelMcpKitServiceProvider extends PackageServiceProvider
 
     /**
      * Wire Passport for the OAuth transport, but only when OAuth is enabled
-     * and Passport is actually installed. Both are non-destructive: the
-     * `api` guard is only added if the host has not defined one, so a real
-     * app's own config/auth.php always wins.
+     * and Passport is actually installed. Everything here is non-destructive:
+     * the `api` guard is only added if the host has not defined one, the
+     * consent view and migration loading are opt-out via config, so a real
+     * app's own config always wins.
+     *
+     * The goal is one-flag OAuth: set `MCP_KIT_WEB_OAUTH_ENABLED=true`, run
+     * `migrate`, generate keys — no service-provider edits, no extra publish
+     * steps. `mcp-kit:install --oauth` does the last two for you.
      */
     protected function configureOAuth(): void
     {
@@ -76,5 +84,26 @@ class LaravelMcpKitServiceProvider extends PackageServiceProvider
         Passport::refreshTokensExpireIn(
             now()->addDays((int) config('mcp-kit.web.oauth.refresh_token_days', 30))
         );
+
+        // Consent screen for the auth-code flow. Passport 13 ships none, so
+        // wire our publishable stub unless the host opted out (false) or
+        // pointed the config at their own branded view.
+        $view = config('mcp-kit.web.oauth.authorization_view', 'mcp-kit::authorize');
+
+        if ($view !== false && $view !== null) {
+            Passport::authorizationView($view);
+        }
+
+        // Passport 13 no longer auto-loads its oauth_* migrations. Register
+        // them so a plain `migrate` creates the tables — saving the host a
+        // `vendor:publish --tag=passport-migrations` step.
+        if (config('mcp-kit.web.oauth.load_migrations', true)) {
+            $passportMigrations = dirname((new ReflectionClass(Passport::class))->getFileName(), 2)
+                .'/database/migrations';
+
+            if (is_dir($passportMigrations)) {
+                $this->loadMigrationsFrom($passportMigrations);
+            }
+        }
     }
 }

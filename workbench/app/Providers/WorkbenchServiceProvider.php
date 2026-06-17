@@ -4,7 +4,6 @@ namespace Workbench\App\Providers;
 
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Passport\Passport;
 
 class WorkbenchServiceProvider extends ServiceProvider
 {
@@ -40,15 +39,9 @@ class WorkbenchServiceProvider extends ServiceProvider
             'http://127.0.0.1',
         ]]);
 
-        if (class_exists(Passport::class)) {
-            // Passport 13 ships no consent view — use the package's stub.
-            Passport::authorizationView('mcp-kit::authorize');
-
-            // Passport 13 does not auto-load its migrations; load them here
-            // for the workbench so `migrate` creates the oauth_* tables.
-            $this->loadMigrationsFrom(
-                dirname(__DIR__, 3).'/vendor/laravel/passport/database/migrations'
-            );
-        }
+        // Note: the consent view (mcp-kit::authorize) and Passport's oauth_*
+        // migrations are wired by the package itself when OAuth is enabled —
+        // see LaravelMcpKitServiceProvider::configureOAuth(). The workbench
+        // gets them for free, exactly like a host app would.
     }
 }

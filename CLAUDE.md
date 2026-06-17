@@ -18,6 +18,9 @@ or extend. Keep it production-quality and high-signal, not minimal-for-its-own-s
 - `composer test-coverage` — suite with coverage.
 - `composer format` — Pint (run before committing).
 - `composer analyse` — larastan, level 5 (`config/` excluded; see Gotchas).
+- `php artisan mcp-kit:install [--oauth] [--ui] [--force]` — one-shot host setup: publishes config +
+  migration; `--oauth` also publishes the consent view and runs `passport:keys`; `--ui` publishes the
+  Livewire UI. Idempotent. See `Commands/InstallCommand.php`.
 - `php artisan mcp-kit:demo [--fresh]` — seed demo tasks so the read tools have something to return
   (host app only; `--fresh` wipes first). See `Commands/SeedDemoTasksCommand.php`.
 - `php artisan mcp-kit:token {email} [--name=] [--only-token]` — issue a Sanctum token for the HTTP
@@ -59,8 +62,12 @@ or extend. Keep it production-quality and high-signal, not minimal-for-its-own-s
   Code/Desktop) **or** an OAuth 2.1 Passport token (header-less connectors: claude.ai).
 - OAuth is **off by default**. `MCP_KIT_WEB_OAUTH_ENABLED=true` makes `routes/ai.php` register
   `Mcp::oauthRoutes()` and switches the computed middleware from `auth:sanctum` to `auth:sanctum,api`.
-- `configureOAuth()` in the provider wires Passport **non-destructively**: it adds the `api` guard
-  only if the host has not defined one, and sets token TTLs. Both gated on `class_exists(Passport)`.
+- `configureOAuth()` in the provider wires Passport **non-destructively** when OAuth is on: adds the
+  `api` guard only if the host has not defined one, sets token TTLs, **wires the consent view**
+  (`mcp-kit::authorize`, opt-out via `web.oauth.authorization_view`), and **loads Passport's `oauth_*`
+  migrations** (opt-out via `web.oauth.load_migrations`) so a plain `migrate` suffices. All gated on
+  `class_exists(Passport)`. Net effect: flipping `MCP_KIT_WEB_OAUTH_ENABLED=true` is the only code
+  change a host needs — no service-provider edits.
 - Per-tool authorization is unchanged either way — the guard authenticates; `ability()` authorizes.
 - OAuth flow tests boot with OAuth on via `tests/OAuthTestCase.php` (separate `tests/OAuth/` tree, so
   Pest's per-directory base class doesn't clash with `tests/Feature/`).
@@ -112,6 +119,9 @@ or extend. Keep it production-quality and high-signal, not minimal-for-its-own-s
 > the same model (incompatible `$accessToken` property types). Use **only** the Sanctum trait;
 > Passport's guard calls `withAccessToken()` itself.
 
-> **Passport 13 ships no migrations or consent view.** Hosts must
-> `vendor:publish --tag=passport-migrations`, `migrate`, `passport:keys`, and provide a consent view
-> (publish the `mcp-kit-ui`/`mcp-kit-views` stub and wire `Passport::authorizationView(...)`).
+> **Passport 13 ships no migrations or consent view — the kit fills both gaps.** Rather than make
+> hosts `vendor:publish --tag=passport-migrations` + wire `Passport::authorizationView(...)` by hand,
+> `configureOAuth()` loads Passport's migrations and binds the `mcp-kit::authorize` view when OAuth is
+> on. So a host only needs Passport installed, `MCP_KIT_WEB_OAUTH_ENABLED=true`, `migrate`, and
+> `passport:keys` (the last two run by `mcp-kit:install --oauth`). Both auto-wirings are opt-out via
+> `web.oauth.load_migrations` / `web.oauth.authorization_view` for hosts that own those themselves.

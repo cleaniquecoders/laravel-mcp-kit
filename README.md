@@ -30,13 +30,16 @@ patterns a production MCP server needs:
 composer require cleaniquecoders/laravel-mcp-kit
 ```
 
-Publish the config and run the migration:
+Run the installer — it publishes the config and migration in one step:
 
 ```bash
-php artisan vendor:publish --tag="mcp-kit-config"
-php artisan vendor:publish --tag="mcp-kit-migrations"
+php artisan mcp-kit:install          # token-only (Sanctum) transport
+php artisan mcp-kit:install --oauth  # also wire the OAuth 2.1 flow (see below)
 php artisan migrate
 ```
+
+> Prefer to do it by hand? `vendor:publish --tag="mcp-kit-config"` and
+> `--tag="mcp-kit-migrations"` publish the same files.
 
 Seed some demo tasks for the agent to query:
 
@@ -122,35 +125,37 @@ claude mcp add --transport http mcp-kit https://your-app.test/mcp/tasks \
 For connectors that **cannot** send custom headers (claude.ai). The client discovers the server,
 self-registers (Dynamic Client Registration), and runs an authorization-code + PKCE flow.
 
-1. Install and set up Passport in your app, then publish its migrations and generate keys:
+1. Install Passport, then run the installer's OAuth path — it publishes the consent view and
+   generates the Passport keys for you:
    ```bash
    composer require laravel/passport
-   php artisan vendor:publish --tag=passport-migrations
-   php artisan migrate
-   php artisan passport:keys
+   php artisan mcp-kit:install --oauth
    ```
-2. Turn on the OAuth transport:
+2. Turn on the OAuth transport and migrate:
    ```dotenv
    MCP_KIT_WEB_OAUTH_ENABLED=true
    ```
-   The package then registers `Mcp::oauthRoutes()` and switches the endpoint middleware to
-   `auth:sanctum,api`. It auto-wires an `api` (Passport) guard only if your `config/auth.php` has not
-   already defined one.
+   ```bash
+   php artisan migrate
+   ```
+   With the flag on, the package does the rest **automatically**: it registers `Mcp::oauthRoutes()`,
+   switches the endpoint middleware to `auth:sanctum,api`, auto-wires an `api` (Passport) guard (only
+   if you haven't defined one), **loads Passport's `oauth_*` migrations** (so a plain `migrate` is
+   enough — no `vendor:publish --tag=passport-migrations`), and **wires the consent screen**
+   (`mcp-kit::authorize`) — no service-provider edit needed.
 3. Allow Claude's redirect domains in the published `config/mcp.php`:
    ```php
    'redirect_domains' => ['https://claude.ai', 'https://claude.com', 'http://localhost'],
    ```
-4. (Optional) Publish and wire a consent screen — Passport 13 ships none:
-   ```bash
-   php artisan vendor:publish --tag="mcp-kit-views"
-   ```
-   ```php
-   \Laravel\Passport\Passport::authorizationView('mcp-kit::authorize');
-   ```
-5. Connect — no header needed; Claude drives the OAuth flow:
+4. Connect — no header needed; Claude drives the OAuth flow:
    ```bash
    claude mcp add --transport http mcp-kit https://your-app.test/mcp/tasks
    ```
+
+> **Customising?** Point `mcp-kit.web.oauth.authorization_view` at your own Blade view to brand the
+> consent screen (or set it to `false` to keep Passport's default), and set
+> `mcp-kit.web.oauth.load_migrations` to `false` if you'd rather publish and own the `oauth_*`
+> migrations yourself. Both are env-overridable.
 
 > **Guard order matters: `sanctum` before `api`.** Passport's token guard strips the `Authorization`
 > header when a bearer token fails JWT validation, so a Sanctum token would never reach the sanctum

@@ -27,6 +27,10 @@ class OAuthTestCase extends TestCase
         // the OAuth discovery + registration routes.
         config()->set('mcp-kit.web.oauth.enabled', true);
 
+        // Passport's token issuance touches the cache; keep it in-memory so
+        // the suite needs no `cache` table.
+        config()->set('cache.default', 'array');
+
         // Pin the redirect allow-list the DCR endpoint validates against.
         config()->set('mcp.redirect_domains', [
             'https://claude.ai',

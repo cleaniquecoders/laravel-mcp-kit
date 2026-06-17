@@ -71,12 +71,28 @@ return [
 
         'oauth' => [
             // OFF by default — the kit works token-only out of the box.
-            // Turn on once Passport is installed and configured (see docs).
+            // Once Passport is installed, flipping this on is all it takes:
+            // the kit auto-loads Passport's migrations and wires the consent
+            // screen for you (see the two keys below). No service-provider
+            // edits, no extra publish steps. See `mcp-kit:install --oauth`.
             'enabled' => env('MCP_KIT_WEB_OAUTH_ENABLED', false),
 
             // Token lifetimes applied to Passport when OAuth is enabled.
             'access_token_hours' => (int) env('MCP_KIT_OAUTH_ACCESS_HOURS', 12),
             'refresh_token_days' => (int) env('MCP_KIT_OAUTH_REFRESH_DAYS', 30),
+
+            // Consent screen Passport renders during the auth-code flow.
+            // Passport 13 ships none, so the kit wires its own publishable
+            // stub (`mcp-kit::authorize`) for you. Point this at your own
+            // Blade view to brand it, or set it to false to leave Passport's
+            // default untouched and wire the view yourself.
+            'authorization_view' => env('MCP_KIT_OAUTH_AUTH_VIEW', 'mcp-kit::authorize'),
+
+            // Passport 13 no longer auto-loads its oauth_* migrations. With
+            // this on (default) the kit registers them so a plain `migrate`
+            // creates the tables — no `vendor:publish --tag=passport-migrations`
+            // needed. Turn off if you publish/own those migrations yourself.
+            'load_migrations' => (bool) env('MCP_KIT_OAUTH_LOAD_MIGRATIONS', true),
         ],
     ],
 

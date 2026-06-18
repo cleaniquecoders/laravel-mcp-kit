@@ -128,5 +128,19 @@ class InstallCommand extends Command
         }
 
         $this->components->bulletList($steps);
+
+        if ($this->option('oauth')) {
+            $this->newLine();
+            $this->components->warn('Before going to production, read docs/06-deployment — the OAuth '
+                .'flow also depends on infrastructure:');
+            $this->components->bulletList([
+                'Run `php artisan passport:keys` on EVERY environment. Missing keys let discovery '
+                    .'and registration succeed but make token exchange 500 — a misleading failure.',
+                'Your CDN/WAF must allow Claude\'s bots (ClaudeBot, Claude-User) on /mcp/*, /oauth/*, '
+                    .'and /.well-known/* — AI-scraper blocking returns 403 at the edge.',
+                'Your reverse proxy must serve /.well-known/* (do not deny dotfiles) and pass the real '
+                    .'request URI to Laravel.',
+            ]);
+        }
     }
 }

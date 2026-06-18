@@ -93,6 +93,14 @@ return [
             // creates the tables — no `vendor:publish --tag=passport-migrations`
             // needed. Turn off if you publish/own those migrations yourself.
             'load_migrations' => (bool) env('MCP_KIT_OAUTH_LOAD_MIGRATIONS', true),
+
+            // laravel/mcp's oauthRoutes() registers the two OAuth discovery
+            // documents but not OpenID Connect discovery. Some connectors (and
+            // laravel/mcp's own client) still probe
+            // /.well-known/openid-configuration. With this on (default) the kit
+            // aliases it to the authorization-server metadata so hosts don't
+            // need a reverse-proxy redirect. Turn off if your edge serves it.
+            'openid_configuration' => (bool) env('MCP_KIT_OAUTH_OPENID_CONFIG', true),
         ],
     ],
 

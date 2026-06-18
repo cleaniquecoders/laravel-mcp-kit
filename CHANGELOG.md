@@ -2,6 +2,13 @@
 
 All notable changes to `cleaniquecoders/laravel-mcp-kit` will be documented in this file.
 
+## 1.0.3 - 2026-06-18
+
+- Serve `/.well-known/openid-configuration` when OAuth is enabled, aliasing it (308) to the
+  authorization-server metadata. `laravel/mcp`'s `oauthRoutes()` does not register OpenID discovery,
+  but some connectors (and laravel/mcp's own client) probe it — so hosts no longer need a reverse-proxy
+  redirect. Toggle with `MCP_KIT_OAUTH_OPENID_CONFIG`.
+
 ## 1.0.2 - 2026-06-18
 
 - Add a vendor-neutral MCP OAuth production deployment guide (`docs/06-deployment`): Passport keys per

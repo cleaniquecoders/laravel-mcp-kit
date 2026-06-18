@@ -74,14 +74,16 @@ location ^~ /.well-known/oauth-authorization-server {
     return 200 '{"issuer":"https://your-app.example","authorization_endpoint":"https://your-app.example/oauth/authorize","token_endpoint":"https://your-app.example/oauth/token","registration_endpoint":"https://your-app.example/oauth/register","code_challenge_methods_supported":["S256"],"grant_types_supported":["authorization_code","refresh_token"]}';
 }
 
-# Some clients request OpenID discovery and issuer-relative endpoints.
+# Issuer-relative endpoints some clients build when discovery is incomplete.
 # 308 preserves method + body when redirecting to the Passport routes.
-location = /.well-known/openid-configuration {
-    return 308 /.well-known/oauth-authorization-server;
-}
 location = /authorize { return 308 /oauth/authorize; }
 location = /token     { return 308 /oauth/token; }
 ```
+
+Note that `/.well-known/openid-configuration` is handled **by the package** — it aliases to the
+authorization-server metadata automatically (toggle with `MCP_KIT_OAUTH_OPENID_CONFIG`), so you do not
+need an nginx redirect for it. `laravel/mcp` registers the two OAuth discovery documents; the kit adds
+the OpenID one some connectors probe.
 
 > **Note**: Prefer proxying these paths to Laravel so the package's discovery output stays the single
 > source of truth. Only fall back to static JSON when your panel mangles dotfile paths or the URI.

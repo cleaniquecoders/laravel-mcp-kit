@@ -33,7 +33,10 @@ With the flag on, the package does the rest **automatically**:
 - auto-wires an `api` (Passport) guard — only if you haven't defined one,
 - **loads Passport's `oauth_*` migrations** (so a plain `migrate` is enough — no
   `vendor:publish --tag=passport-migrations`),
-- **wires the consent screen** (`mcp-kit::authorize`) — no service-provider edit needed.
+- **wires the consent screen** (`mcp-kit::authorize`) — no service-provider edit needed,
+- **aliases `/.well-known/openid-configuration`** to the authorization-server metadata — some
+  connectors probe it, and `laravel/mcp` does not register it (toggle with
+  `MCP_KIT_OAUTH_OPENID_CONFIG`).
 
 ### 3. Allow the connector's redirect domains
 

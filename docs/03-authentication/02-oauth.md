@@ -75,7 +75,15 @@ a Sanctum token would never reach the sanctum guard if Passport ran first. The c
 `Sanctum\HasApiTokens` and `Passport\HasApiTokens` cannot coexist on the same model. Use **only** the
 Sanctum trait — Passport's guard calls `withAccessToken()` itself.
 
+## Production
+
+The application-side setup above is the easy part. In production the OAuth flow also has to survive
+your CDN and reverse proxy, and Passport needs encryption keys on every environment. See
+[MCP OAuth in Production](../06-deployment/01-mcp-oauth-production.md) for the operational checklist —
+it is the difference between "works on my machine" and "claude.ai can actually connect".
+
 ## Next Steps
 
+- [MCP OAuth in Production](../06-deployment/01-mcp-oauth-production.md) — deploy checklist.
 - [Try it locally](../05-development/01-workbench.md) — exercise the full OAuth flow in the Workbench.
 - [Configuration](../04-configuration/README.md) — every `MCP_KIT_*` variable.

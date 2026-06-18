@@ -59,6 +59,7 @@ Full documentation lives in [`docs/`](docs/README.md):
 | [Authentication](docs/03-authentication/README.md) | Connecting clients; Sanctum and OAuth 2.1 |
 | [Configuration](docs/04-configuration/README.md) | `config/mcp-kit.php` and `MCP_KIT_*` reference |
 | [Development](docs/05-development/README.md) | Testbench Workbench and testing |
+| [Deployment](docs/06-deployment/README.md) | Running the OAuth transport in production |
 
 ## Testing
 

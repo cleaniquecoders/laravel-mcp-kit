@@ -27,6 +27,10 @@ The `config/mcp-kit.php` reference and every `MCP_KIT_*` environment variable.
 
 Run the server end to end with the Testbench Workbench, and the testing conventions.
 
+### [06. Deployment](06-deployment/README.md)
+
+Running the OAuth transport in production: Passport keys, CDN/WAF, and reverse-proxy rules.
+
 ## Quick Start
 
 New to the package? Start with [Installation](01-getting-started/01-installation.md), then
@@ -37,3 +41,4 @@ New to the package? Start with [Installation](01-getting-started/01-installation
 - **Concepts** (what the server exposes, the rules) — see [Architecture](02-architecture/README.md).
 - **How-to** (connect a client, enable OAuth) — see [Authentication](03-authentication/README.md).
 - **Reference** (config + env vars) — see [Configuration](04-configuration/README.md).
+- **Production** (deploy the OAuth transport) — see [Deployment](06-deployment/README.md).

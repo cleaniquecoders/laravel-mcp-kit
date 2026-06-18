@@ -2,6 +2,13 @@
 
 All notable changes to `cleaniquecoders/laravel-mcp-kit` will be documented in this file.
 
+## 1.0.2 - 2026-06-18
+
+- Add a vendor-neutral MCP OAuth production deployment guide (`docs/06-deployment`): Passport keys per
+  environment and their failure signature, CDN/WAF allow-list for Claude's bots, and reverse-proxy
+  rules for `/.well-known/*` with a reference nginx recipe.
+- Surface the top production gotchas in the `mcp-kit:install --oauth` post-install output.
+
 ## 1.0.1 - 2026-06-18
 
 - Restructure documentation into a numbered `docs/` tree (getting-started, architecture,

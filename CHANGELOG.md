@@ -2,6 +2,13 @@
 
 All notable changes to `cleaniquecoders/laravel-mcp-kit` will be documented in this file.
 
+## 1.0.1 - 2026-06-18
+
+- Restructure documentation into a numbered `docs/` tree (getting-started, architecture,
+  authentication, configuration, development), each with a context README/TOC.
+- Minimise the root README to an overview + features + quick install/start + documentation links,
+  with standard `flat-square` badges.
+
 ## 1.0.0 - 2026-06-17
 
 Initial release.

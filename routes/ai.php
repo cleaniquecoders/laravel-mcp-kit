@@ -1,6 +1,7 @@
 <?php
 
 use CleaniqueCoders\LaravelMcpKit\Servers\TaskServer;
+use Illuminate\Support\Facades\Route;
 use Laravel\Mcp\Facades\Mcp;
 use Laravel\Passport\Passport;
 
@@ -41,6 +42,18 @@ if (config('mcp-kit.web.enabled', true)) {
     // connectors (claude.ai) self-register and obtain a token.
     if ($oauth) {
         Mcp::oauthRoutes();
+
+        // oauthRoutes() registers the two OAuth discovery documents but not
+        // OpenID Connect discovery. Some connectors (and laravel/mcp's own
+        // client) still probe /.well-known/openid-configuration; alias it to
+        // the authorization-server metadata so hosts don't need a reverse-proxy
+        // redirect. 308 preserves the request for clients that follow it.
+        if (config('mcp-kit.web.oauth.openid_configuration', true)) {
+            Route::get(
+                '/.well-known/openid-configuration',
+                fn () => redirect()->route('mcp.oauth.authorization-server', [], 308)
+            )->name('mcp-kit.openid-configuration');
+        }
     }
 
     // Compute the guard stack unless the host overrode it. With OAuth on

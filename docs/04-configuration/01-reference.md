@@ -19,6 +19,7 @@ middleware, the OAuth block, and the ability names. Every value is env-overridab
 | `MCP_KIT_OAUTH_REFRESH_DAYS` | `30` | OAuth refresh-token lifetime |
 | `MCP_KIT_OAUTH_AUTH_VIEW` | `mcp-kit::authorize` | Consent view (or `false` to keep Passport's default) |
 | `MCP_KIT_OAUTH_LOAD_MIGRATIONS` | `true` | Auto-load Passport's `oauth_*` migrations |
+| `MCP_KIT_OAUTH_OPENID_CONFIG` | `true` | Alias `/.well-known/openid-configuration` to the auth-server metadata |
 
 ## Computed middleware
 

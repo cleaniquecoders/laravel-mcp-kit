@@ -29,9 +29,11 @@ patterns a production MCP server needs.
 
 ## Preview
 
-A workbench preview of the MCP settings UI ([#16](https://github.com/cleaniquecoders/laravel-mcp-kit/issues/16)) —
-flip the runtime toggle and review system health, the effective config, and the live tool registry, all
-gated on `manage-mcp`. Run it with `composer serve`, then open `/mcp` (see [Workbench](docs/05-development/01-workbench.md)).
+A publishable **MCP settings & operations page** ([#16](https://github.com/cleaniquecoders/laravel-mcp-kit/issues/16)) —
+flip the runtime toggle and review system health, the effective config, `mcp-kit:doctor` results, and the
+live tool registry, all gated on `manage-mcp`. Publish it with `php artisan mcp-kit:install --ui`
+(Livewire + Flux), or preview it build-free in the workbench (`composer serve` → `/mcp`, see
+[Workbench](docs/05-development/01-workbench.md)).
 
 ![MCP settings — runtime toggle and system health](art/mcp-settings-overview.png)
 

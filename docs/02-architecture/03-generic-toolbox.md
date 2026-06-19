@@ -69,6 +69,15 @@ connections without seeing or revoking a user's other application tokens.
 - **Generators** — scaffold the gate-first pattern (not the bare `laravel/mcp` primitives):
   `mcp-kit:make-tool`, `mcp-kit:make-resource`, `mcp-kit:make-prompt`.
 - **`mcp-kit:doctor`** — verify transports, auth, OAuth keys, tables, and which Tier-2 tools registered.
+  Its checks live in [`Support/McpConfigSnapshot.php`](../../src/Support/McpConfigSnapshot.php) so the
+  command and the settings UI report identical results.
+- **Settings & operations UI** — a publishable, `manage-mcp`-gated Livewire page
+  ([`stubs/Livewire/McpSettings.php.stub`](../../stubs/Livewire/McpSettings.php.stub), Flux) that flips
+  the runtime toggle and shows health, the effective config, doctor results, and the live tool registry.
+  Publish with `mcp-kit:install --ui`; preview build-free in the workbench (`composer serve` → `/mcp`).
+  It reads the same services as everything else — `McpConfigSnapshot`,
+  [`Support/SystemHealth.php`](../../src/Support/SystemHealth.php), `McpToggle`, `ToolRegistry` — with no
+  business logic of its own.
 - **Base helpers** — `download()` (signed URL), `paginatedSummary()`, `configuredAbility()`,
   `requiresAbility()`, and `unauthorized()` on [`Tools/McpKitTool.php`](../../src/Tools/McpKitTool.php).
 - **`support_runbook` prompt** — the generic read-first, human-gated investigation flow (orient →

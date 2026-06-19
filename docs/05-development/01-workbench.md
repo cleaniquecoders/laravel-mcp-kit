@@ -61,9 +61,9 @@ ships in the workbench:
 
 ```bash
 composer serve
-# then in a browser:
-open http://127.0.0.1:8000/login   # sign in as the demo manager (holds `manage-mcp`)
-open http://127.0.0.1:8000/mcp     # the settings page
+# then in a browser just open the settings page — it auto-signs you in as the
+# demo manager (holds `manage-mcp`) via the guest→/login→back bounce:
+open http://127.0.0.1:8000/mcp
 ```
 
 It flips the runtime toggle (the real `Support\McpToggle`) and shows the effective config, health, and

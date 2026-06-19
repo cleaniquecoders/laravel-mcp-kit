@@ -35,8 +35,6 @@ gated on `manage-mcp`. Run it with `composer serve`, then open `/mcp` (see [Work
 
 ![MCP settings — runtime toggle and system health](art/mcp-settings-overview.png)
 
-![MCP settings — effective configuration and the auto-registered tool catalogue](art/mcp-settings-config.png)
-
 ## Requirements
 
 - PHP 8.4+

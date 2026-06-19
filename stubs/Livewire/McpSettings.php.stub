@@ -1,0 +1,73 @@
+<?php
+
+namespace App\Livewire;
+
+use CleaniqueCoders\LaravelMcpKit\Support\McpConfigSnapshot;
+use CleaniqueCoders\LaravelMcpKit\Support\McpToggle;
+use CleaniqueCoders\LaravelMcpKit\Support\SystemHealth;
+use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
+
+/**
+ * MCP settings & operations page — published by laravel-mcp-kit.
+ *
+ *   php artisan vendor:publish --tag="mcp-kit-ui"   (or: php artisan mcp-kit:install --ui)
+ *
+ * A full-page Livewire component (Flux UI), gated on the `manage-mcp` ability.
+ * Route it in your app:
+ *
+ *   use App\Livewire\McpSettings;
+ *   Route::get('/mcp-settings', McpSettings::class)
+ *       ->middleware(['web', 'auth'])
+ *       ->name('mcp.settings');
+ *
+ * It reads the kit's own services (McpConfigSnapshot, SystemHealth, McpToggle)
+ * — the only writable control is the runtime toggle; everything else is a
+ * read-only view of what `.env` / config/mcp-kit.php resolves to. Requires
+ * livewire/livewire + livewire/flux. Adjust the #[Layout] to your app's layout
+ * and restyle to match.
+ */
+#[Layout('components.layouts.app')]
+class McpSettings extends Component
+{
+    public function mount(): void
+    {
+        $this->authorizeManageMcp();
+    }
+
+    public function enable(): void
+    {
+        $this->authorizeManageMcp();
+        McpToggle::enable();
+    }
+
+    public function disable(): void
+    {
+        $this->authorizeManageMcp();
+        McpToggle::disable();
+    }
+
+    protected function authorizeManageMcp(): void
+    {
+        abort_unless(
+            Gate::allows(config('mcp-kit.abilities.manage-mcp', 'mcp-kit.manage-mcp')),
+            403,
+        );
+    }
+
+    public function render()
+    {
+        $snapshot = app(McpConfigSnapshot::class);
+
+        return view('livewire.mcp-settings', [
+            'enabled' => McpToggle::enabled(),
+            'master' => (bool) config('mcp-kit.enabled', true),
+            'health' => app(SystemHealth::class)->run(),
+            'config' => $snapshot->effectiveConfig(),
+            'doctor' => $snapshot->doctor(),
+            'tools' => $snapshot->tools(),
+            'abilities' => $snapshot->abilities(),
+        ]);
+    }
+}

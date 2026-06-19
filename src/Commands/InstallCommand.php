@@ -101,9 +101,13 @@ class InstallCommand extends Command
 
     protected function installUi(): void
     {
-        $this->publish('mcp-kit-ui', 'token-management UI');
+        $this->publish('mcp-kit-ui', 'settings + token-management UI');
 
-        $this->components->warn('The token UI needs livewire/livewire and livewire/flux in your app.');
+        $this->components->warn('The UI needs livewire/livewire and livewire/flux in your app.');
+        $this->components->bulletList([
+            'Route the settings page (gated on `manage-mcp`):',
+            '  Route::get(\'/mcp-settings\', App\\Livewire\\McpSettings::class)->middleware([\'web\', \'auth\']);',
+        ]);
     }
 
     protected function nextSteps(): void

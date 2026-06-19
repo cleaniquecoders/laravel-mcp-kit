@@ -62,6 +62,8 @@ class LaravelMcpKitServiceProvider extends PackageServiceProvider
             __DIR__.'/../stubs/views/mcp-tokens.blade.php.stub' => resource_path('views/livewire/mcp-tokens.blade.php'),
             __DIR__.'/../stubs/Livewire/McpToggleCard.php.stub' => app_path('Livewire/McpToggleCard.php'),
             __DIR__.'/../stubs/views/mcp-toggle-card.blade.php.stub' => resource_path('views/livewire/mcp-toggle-card.blade.php'),
+            __DIR__.'/../stubs/Livewire/McpSettings.php.stub' => app_path('Livewire/McpSettings.php'),
+            __DIR__.'/../stubs/views/mcp-settings.blade.php.stub' => resource_path('views/livewire/mcp-settings.blade.php'),
         ], 'mcp-kit-ui');
 
         // Register the MCP servers (STDIO + HTTP) declared in routes/ai.php.

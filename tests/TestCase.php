@@ -59,6 +59,13 @@ class TestCase extends Orchestra
     {
         config()->set('database.default', 'testing');
 
+        // Pin a valid encryption key. Testbench only applies its default
+        // app.key when the APP_KEY env is ABSENT (Env::has check); some CI
+        // matrices export an empty APP_KEY, so the default is skipped and the
+        // encryption-dependent paths (Passport's OAuth flow, signed URLs) blow
+        // up with MissingAppKeyException. Set it unconditionally here.
+        config()->set('app.key', 'AckfSECXIvnK5r28GVIWUAxmbBSjTsmF');
+
         // The runtime toggle is cache-backed; use the array store in tests so
         // it never reaches for a (non-existent) database cache table.
         config()->set('cache.default', 'array');

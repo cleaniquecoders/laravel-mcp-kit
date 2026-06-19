@@ -43,8 +43,10 @@ or extend. Keep it production-quality and high-signal, not minimal-for-its-own-s
 - `composer mcp-inspect` / `mcp-inspect-web` — open the MCP Inspector (browser UI) against the
   stdio / HTTP transport.
 - Host/port is a single source of truth: `MCP_KIT_HOST`/`MCP_KIT_PORT` (default `127.0.0.1:8000`),
-  read by both `bin/serve.sh` and `bin/connect-claude.sh`. `bin/serve.sh` pins the port so it fails
-  rather than drifting — keeping the registered URL correct.
+  read by both `bin/serve.sh` and `bin/connect-claude.sh`. The port is "sticky" (registration uses it):
+  if it's busy, `bin/serve.sh` reclaims a *stale workbench server* it finds there (the usual
+  "Address already in use" cause), and only if an unrelated process owns it falls back to the next free
+  port and warns to re-run `mcp-connect`. It never kills processes it didn't start.
 
 ## Architecture (the conventions that matter)
 

@@ -1,6 +1,7 @@
 <?php
 
 use CleaniqueCoders\LaravelMcpKit\Support\McpToggle;
+use Illuminate\Support\Facades\View;
 use Livewire\Livewire;
 use Livewire\LivewireServiceProvider;
 use Workbench\App\Livewire\McpSettings;
@@ -9,7 +10,7 @@ use Workbench\App\Livewire\McpSettings;
 // workbench view path so the component renders inside the package test app.
 beforeEach(function () {
     $this->app->register(LivewireServiceProvider::class);
-    view()->addLocation(dirname(__DIR__, 2).'/workbench/resources/views');
+    View::addLocation(dirname(__DIR__, 2).'/workbench/resources/views');
     Livewire::component('mcp-settings', McpSettings::class);
 });
 

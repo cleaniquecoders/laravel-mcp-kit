@@ -7,6 +7,7 @@ use CleaniqueCoders\LaravelMcpKit\Support\HealthRegistry;
 use CleaniqueCoders\LaravelMcpKit\Support\McpToggle;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Throwable;
@@ -42,7 +43,7 @@ class McpSettings extends Component
     protected function ensureManageMcp(): void
     {
         abort_unless(
-            auth()->user()?->can(config('mcp-kit.abilities.manage-mcp', 'mcp-kit.manage-mcp')),
+            Gate::allows(config('mcp-kit.abilities.manage-mcp', 'mcp-kit.manage-mcp')),
             403,
         );
     }

@@ -3,6 +3,7 @@
 namespace Workbench\App\Providers;
 
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Livewire\LivewireServiceProvider;
@@ -31,7 +32,7 @@ class WorkbenchServiceProvider extends ServiceProvider
         // Demo gates. A real app backs these with its own permission system
         // (a Policy, spatie/laravel-permission, etc.). Here `is_manager`
         // decides who may write — everyone may read.
-        Gate::define('mcp-kit.view-tasks', fn ($user) => true);
+        Gate::define('mcp-kit.view-tasks', fn () => true);
         Gate::define('mcp-kit.manage-tasks', fn ($user) => (bool) ($user->is_manager ?? false));
 
         // Who may flip the runtime MCP toggle / reach the settings UI.
@@ -39,7 +40,7 @@ class WorkbenchServiceProvider extends ServiceProvider
 
         // The MCP settings UI harness (issue #16). Register the Livewire
         // component and make the workbench views resolvable.
-        view()->addLocation(dirname(__DIR__, 2).'/resources/views');
+        View::addLocation(dirname(__DIR__, 2).'/resources/views');
         Livewire::component('mcp-settings', McpSettings::class);
 
         // Sanctum's personal_access_tokens table (not auto-loaded here).

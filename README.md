@@ -51,8 +51,37 @@ php artisan mcp-kit:install   # publishes config + migration (add --oauth to wir
 php artisan migrate
 ```
 
-Then define the two Gate abilities every tool checks — see
-[Installation](docs/01-getting-started/01-installation.md).
+## Abilities
+
+Every tool checks a Gate ability. The kit only ships the ability **names** (in
+`config('mcp-kit.abilities')`) — you decide who holds each, mapping them onto your own permission
+system (`Gate::define`, a Policy, or spatie/laravel-permission):
+
+```php
+// In a service provider's boot() — wire them all at once…
+use Illuminate\Support\Facades\Gate;
+
+foreach (config('mcp-kit.abilities') as $ability) {
+    Gate::define($ability, fn ($user) => $user->is_admin);
+}
+
+// …or per ability, for finer-grained access:
+Gate::define('mcp-kit.view-logs',  fn ($user) => $user->hasRole('support'));
+Gate::define('mcp-kit.manage-mcp', fn ($user) => $user->hasRole('admin'));
+```
+
+| Ability | Gates |
+|---|---|
+| `mcp-kit.view-tasks` · `mcp-kit.manage-tasks` | task read · write |
+| `mcp-kit.view-logs` · `mcp-kit.export-logs` | `tail_logs` / `search_logs` · `export_logs` |
+| `mcp-kit.view-jobs` · `mcp-kit.manage-jobs` | failed-jobs / queue · `retry_failed_job` |
+| `mcp-kit.view-system` | `system_health` · `scheduled_tasks` |
+| `mcp-kit.view-audits` · `mcp-kit.view-activities` · `mcp-kit.view-permissions` | Tier-2 readers (auditing · activitylog · permission) |
+| `mcp-kit.manage-tokens` | `issue` / `list` / `revoke_mcp_token` |
+| `mcp-kit.manage-mcp` | the runtime on/off toggle |
+
+`whoami` and `list_my_abilities` need only an authenticated user. See the
+[config reference](docs/04-configuration/01-reference.md) for the full map.
 
 ## Quick Start
 

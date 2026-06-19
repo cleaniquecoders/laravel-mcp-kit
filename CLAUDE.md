@@ -26,6 +26,12 @@ or extend. Keep it production-quality and high-signal, not minimal-for-its-own-s
 - `php artisan mcp-kit:token {email} [--name=] [--only-token]` — issue a Sanctum token for the HTTP
   endpoint and print the `claude mcp add` command. `--only-token` prints just the raw token (for
   scripting). See `Commands/IssueTokenCommand.php`.
+- `php artisan mcp-kit:doctor` — verify transports/auth/OAuth-keys/tables wiring and report which
+  Tier-2 tools auto-registered. See `Commands/DoctorCommand.php`.
+- `php artisan mcp-kit:toggle {on|off|status}` — flip the cache-backed runtime switch (under the
+  `MCP_KIT_ENABLED` master). See `Commands/ToggleCommand.php` + `Support/McpToggle.php`.
+- `php artisan mcp-kit:make-tool|make-resource|make-prompt {Name}` — scaffold the gate-first pattern
+  (extends `McpKitTool` / auth-gated resource / read-first runbook). Stubs in `stubs/mcp-kit-*.stub`.
 
 **Workbench helper scripts** (composer, Testbench-only — see `bin/` and `composer.json`):
 - `composer serve` — `build-db` → `mcp-connect` → `bin/serve.sh`. One command to prepare a clean DB,
@@ -43,9 +49,17 @@ or extend. Keep it production-quality and high-signal, not minimal-for-its-own-s
 ## Architecture (the conventions that matter)
 
 - **MCP primitives** live in `src/`:
-  - `Servers/TaskServer.php` — the registry (`$tools`, `$resources`, `$prompts`) + `#[Instructions]`.
-  - `Tools/` — one class per tool, all extend `Tools/McpKitTool.php` (the base).
+  - `Servers/TaskServer.php` — builds its registry in `boot()` from `Servers/ToolRegistry.php` + `#[Instructions]`.
+  - `Servers/ToolRegistry.php` — the single source of truth for what's exposed. Tier-1 tools are always
+    on; Tier-2 tools auto-register only when their package/table exist (`Tool::isAvailable()`).
+  - `Tools/` — one class per tool, all extend `Tools/McpKitTool.php` (the generic base). Task-domain
+    helpers live in `Tools/Concerns/InteractsWithTasks.php`, not the base.
   - `Resources/` — read-by-URI context. `Prompts/` — reusable instruction templates.
+  - `Support/` — `HealthRegistry` (backs `Mcp::healthCheck()` + `system_health`), `McpToggle` (runtime
+    switch). `Http/Controllers/DownloadExportController.php` serves the signed `mcp-kit.download` route.
+- **Generic toolbox** (issue #14): identity (`whoami`/`list_my_abilities`), `system_health`, logs
+  (`tail`/`search`/`export`), jobs (`list_failed_jobs`/`retry_failed_job`/`queue_status`/`scheduled_tasks`),
+  and package-gated audits/tokens/RBAC/activity. See `docs/02-architecture/03-generic-toolbox.md`.
 - **`McpKitTool` base is law.** Every tool: (1) declares an `ability()`, (2) calls `authorizedUser()`
   first and returns `unauthorized()` on failure, (3) speaks **uuid only** via `taskSummary()` —
   never expose the integer `id`.

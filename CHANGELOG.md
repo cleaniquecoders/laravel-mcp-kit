@@ -2,6 +2,45 @@
 
 All notable changes to `cleaniquecoders/laravel-mcp-kit` will be documented in this file.
 
+## 1.1.0 - 2026-06-19
+
+The **generic toolbox** line on top of the task-demo foundation
+([#14](https://github.com/cleaniquecoders/laravel-mcp-kit/issues/14)). Every new tool is gated on a
+configurable ability, speaks uuid-only, annotates reads with `#[IsReadOnly]`, and auto-registers only
+when its backing package (and table) are present — the kit degrades gracefully and never forces a
+dependency.
+
+### Tier 1 — pure-generic core tools (always on)
+
+- `whoami` / `list_my_abilities` — identity + the abilities the token holder has (self-discovery).
+- `system_health` — DB/cache/queue/storage reachability + app-defined checks.
+- `tail_logs` / `search_logs` / `export_logs` — read `storage/logs`; export returns a signed URL.
+- `list_failed_jobs` / `retry_failed_job` (via the `RetryFailedJob` action) / `queue_status`.
+- `scheduled_tasks` — scheduler entries with expression and next run.
+
+### Tier 2 — auto-registered when the package is present
+
+- `list_audits` (`owen-it/laravel-auditing`).
+- `issue_mcp_token` / `list_mcp_tokens` / `revoke_mcp_token` (`laravel/sanctum`), scoped to the
+  authenticated user's own MCP-prefixed tokens.
+- `list_roles` / `list_permissions` / `get_user_permissions` (`spatie/laravel-permission`).
+- `list_activities` (`spatie/laravel-activitylog`).
+
+### Tier 3 — infrastructure & patterns
+
+- **Runtime toggle** — `Support\McpToggle` + `mcp-kit:toggle` command + publishable Livewire card.
+  Cache-backed, route-cache-aware, layered under the `MCP_KIT_ENABLED` master switch.
+- **Health registry** — `Mcp::healthCheck('name', fn () => …)` checks surfaced by `system_health`.
+- **Signed-URL export helper** — `Actions\ExportToSignedUrl` + the `mcp-kit.download` signed route,
+  exposed on the base tool as `download()`.
+- **Generators** — `mcp-kit:make-tool` / `make-resource` / `make-prompt` scaffold the gate-first pattern.
+- **`mcp-kit:doctor`** — verify token/transport/OAuth wiring and which Tier-2 tools registered.
+- **Base helpers** — `download()`, `paginatedSummary()`, `configuredAbility()`, `requiresAbility()`.
+- **`support_runbook` prompt** — the generic read-first, human-gated investigation flow.
+
+The `McpKitTool` base is now fully generic (task helpers moved to a `Concerns\InteractsWithTasks` trait),
+and `TaskServer` builds its registry in `boot()` via `Servers\ToolRegistry`.
+
 ## 1.0.3 - 2026-06-18
 
 - Serve `/.well-known/openid-configuration` when OAuth is enabled, aliasing it (308) to the

@@ -1,0 +1,35 @@
+<div>
+    <flux:card>
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <flux:heading size="lg">MCP server</flux:heading>
+                <flux:subheading>
+                    Turn the MCP server on or off at runtime — no redeploy needed.
+                </flux:subheading>
+            </div>
+
+            <flux:badge :color="$this->enabled ? 'green' : 'red'">
+                {{ $this->enabled ? 'Enabled' : 'Disabled' }}
+            </flux:badge>
+        </div>
+
+        @unless ($this->masterSwitch)
+            <flux:callout variant="warning" icon="exclamation-triangle" class="mt-4">
+                <flux:callout.text>
+                    The env master switch <code>MCP_KIT_ENABLED</code> is off, so MCP stays
+                    disabled regardless of this toggle.
+                </flux:callout.text>
+            </flux:callout>
+        @endunless
+
+        <div class="mt-4 flex gap-3">
+            @if ($this->enabled)
+                <flux:button wire:click="disable" variant="danger">Disable MCP</flux:button>
+            @else
+                <flux:button wire:click="enable" variant="primary" :disabled="! $this->masterSwitch">
+                    Enable MCP
+                </flux:button>
+            @endif
+        </div>
+    </flux:card>
+</div>

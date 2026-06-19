@@ -4,6 +4,7 @@ namespace CleaniqueCoders\LaravelMcpKit\Tools;
 
 use CleaniqueCoders\LaravelMcpKit\Enums\TaskStatus;
 use CleaniqueCoders\LaravelMcpKit\Models\Task;
+use CleaniqueCoders\LaravelMcpKit\Tools\Concerns\InteractsWithTasks;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -16,6 +17,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class ListTasksTool extends McpKitTool
 {
+    use InteractsWithTasks;
+
     protected function ability(): string
     {
         return 'mcp-kit.view-tasks';

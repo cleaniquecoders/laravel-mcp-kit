@@ -33,3 +33,22 @@ function nobody(): User
 {
     return tap(new User(['grants' => []]))->setAttribute('id', 3);
 }
+
+/**
+ * A user holding EVERY ability (grants '*') — for exercising the authorized
+ * path of the generic toolbox tools.
+ */
+function admin(): User
+{
+    return tap(new User(['grants' => ['*', 'view', 'manage']]))->setAttribute('id', 4);
+}
+
+/**
+ * A user holding exactly the given ability keys (e.g. ['view-logs']).
+ *
+ * @param  array<int, string>  $keys
+ */
+function granted(array $keys, int $id = 5): User
+{
+    return tap(new User(['grants' => $keys]))->setAttribute('id', $id);
+}

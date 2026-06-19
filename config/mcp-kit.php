@@ -111,13 +111,114 @@ return [
     |
     | The Gate abilities each tool checks. The HOST app is responsible for
     | defining these gates (via Gate::define, a Policy, or a permission
-    | package like spatie/laravel-permission). Listed here for reference.
+    | package like spatie/laravel-permission). They are listed here so a tool
+    | reads its ability from config — letting a host remap any tool onto its
+    | own permission scheme without touching the tool class.
     |
     */
 
     'abilities' => [
+        // Task demo (Tier 0 — the reference domain).
         'view-tasks' => 'mcp-kit.view-tasks',
         'manage-tasks' => 'mcp-kit.manage-tasks',
+
+        // Generic ops tools (Tier 1). All zero-domain-coupling.
+        'view-logs' => 'mcp-kit.view-logs',
+        'export-logs' => 'mcp-kit.export-logs',
+        'view-jobs' => 'mcp-kit.view-jobs',
+        'manage-jobs' => 'mcp-kit.manage-jobs',
+        'view-system' => 'mcp-kit.view-system',
+
+        // Package-gated tools (Tier 2). Only used when the backing package
+        // is installed — the tool stays unregistered otherwise.
+        'view-audits' => 'mcp-kit.view-audits',
+        'view-activities' => 'mcp-kit.view-activities',
+        'view-permissions' => 'mcp-kit.view-permissions',
+        'manage-tokens' => 'mcp-kit.manage-tokens',
+
+        // Infrastructure (Tier 3): who may flip the runtime MCP toggle.
+        'manage-mcp' => 'mcp-kit.manage-mcp',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Runtime toggle
+    |--------------------------------------------------------------------------
+    |
+    | A cache-backed on/off switch independent of MCP_KIT_ENABLED (which stays
+    | the deploy-time master kill-switch). It lets an operator turn MCP off
+    | without a redeploy — see Support\McpToggle and the `mcp-kit:toggle`
+    | command. The toggle layers UNDER the env switch: if MCP_KIT_ENABLED is
+    | false, MCP is off regardless of the toggle.
+    |
+    | Because routes/ai.php reads the toggle when it registers the server, the
+    | toggle clears the route cache on change so the next request re-evaluates.
+    | Use a SHARED cache store (redis/database/file — not `array`) so the flag
+    | is visible across web + queue + CLI processes.
+    |
+    */
+
+    'toggle' => [
+        // Default state when the flag has never been set.
+        'default' => (bool) env('MCP_KIT_TOGGLE_DEFAULT', true),
+
+        // Cache store backing the flag. null => the app's default store.
+        'store' => env('MCP_KIT_TOGGLE_STORE'),
+
+        // Cache key the flag is stored under.
+        'key' => env('MCP_KIT_TOGGLE_KEY', 'mcp-kit.runtime-enabled'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ops tools
+    |--------------------------------------------------------------------------
+    |
+    | Settings for the generic ops tools (logs, exports). Each tool degrades
+    | gracefully when its backing storage is absent.
+    |
+    */
+
+    'ops' => [
+        'logs' => [
+            // Directory the log tools read, relative to storage/ unless
+            // absolute. Defaults to Laravel's storage/logs.
+            'path' => env('MCP_KIT_LOGS_PATH', storage_path('logs')),
+
+            // Hard cap on how many lines a single tail/search call returns,
+            // so a huge log can never blow up a response.
+            'max_lines' => (int) env('MCP_KIT_LOGS_MAX_LINES', 500),
+        ],
+
+        'export' => [
+            // Filesystem disk exports are written to before signing a URL.
+            'disk' => env('MCP_KIT_EXPORT_DISK', 'local'),
+
+            // Directory on that disk for export artifacts.
+            'directory' => env('MCP_KIT_EXPORT_DIRECTORY', 'mcp-kit/exports'),
+
+            // Lifetime of the signed download URL, in minutes.
+            'ttl' => (int) env('MCP_KIT_EXPORT_TTL', 15),
+
+            // URI prefix for the signed download route.
+            'route' => env('MCP_KIT_EXPORT_ROUTE', 'mcp-kit/exports'),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | MCP token management (Tier 2 — requires laravel/sanctum)
+    |--------------------------------------------------------------------------
+    |
+    | The token tools (issue/list/revoke_mcp_token) only ever touch tokens
+    | whose name starts with this prefix, so an agent can manage its own MCP
+    | connections without being able to see or revoke a user's other app
+    | tokens. They also only ever act on the AUTHENTICATED user's own tokens.
+    |
+    */
+
+    'tokens' => [
+        'prefix' => env('MCP_KIT_TOKEN_PREFIX', 'mcp-kit'),
     ],
 
 ];

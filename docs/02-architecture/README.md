@@ -13,6 +13,12 @@ The tools, resource, and prompt the server ships, and where the MCP primitives l
 The rules every tool follows: the `McpKitTool` base, uuid-only output, Actions for writes, and
 read-vs-write annotations.
 
+### [3. Generic toolbox](03-generic-toolbox.md)
+
+The opt-in, zero-domain-coupling ops tools (identity, health, logs, jobs, audits, tokens, RBAC,
+activity) and the Tier-3 infrastructure: runtime toggle, health registry, signed-URL exports,
+generators, and `mcp-kit:doctor`.
+
 ## Related Documentation
 
 - [Getting Started](../01-getting-started/README.md) — install and wire the gates.

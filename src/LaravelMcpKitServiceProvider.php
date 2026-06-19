@@ -2,9 +2,16 @@
 
 namespace CleaniqueCoders\LaravelMcpKit;
 
+use CleaniqueCoders\LaravelMcpKit\Commands\DoctorCommand;
 use CleaniqueCoders\LaravelMcpKit\Commands\InstallCommand;
 use CleaniqueCoders\LaravelMcpKit\Commands\IssueTokenCommand;
+use CleaniqueCoders\LaravelMcpKit\Commands\MakePromptCommand;
+use CleaniqueCoders\LaravelMcpKit\Commands\MakeResourceCommand;
+use CleaniqueCoders\LaravelMcpKit\Commands\MakeToolCommand;
 use CleaniqueCoders\LaravelMcpKit\Commands\SeedDemoTasksCommand;
+use CleaniqueCoders\LaravelMcpKit\Commands\ToggleCommand;
+use CleaniqueCoders\LaravelMcpKit\Support\HealthRegistry;
+use Laravel\Mcp\Facades\Mcp;
 use Laravel\Passport\Passport;
 use ReflectionClass;
 use Spatie\LaravelPackageTools\Package;
@@ -25,11 +32,26 @@ class LaravelMcpKitServiceProvider extends PackageServiceProvider
             ->hasMigration('create_mcp_kit_tasks_table')
             ->hasCommand(InstallCommand::class)
             ->hasCommand(SeedDemoTasksCommand::class)
-            ->hasCommand(IssueTokenCommand::class);
+            ->hasCommand(IssueTokenCommand::class)
+            ->hasCommand(DoctorCommand::class)
+            ->hasCommand(ToggleCommand::class)
+            ->hasCommand(MakeToolCommand::class)
+            ->hasCommand(MakeResourceCommand::class)
+            ->hasCommand(MakePromptCommand::class);
+    }
+
+    public function packageRegistered(): void
+    {
+        // Holds app-defined connectivity checks the `system_health` tool
+        // reports. Singleton so registrations made in a host's provider boot
+        // survive for the whole request.
+        $this->app->singleton(HealthRegistry::class);
     }
 
     public function packageBooted(): void
     {
+        $this->registerHealthCheckMacro();
+
         $this->configureOAuth();
 
         // Publishable Livewire + Flux token-management UI (optional).
@@ -38,6 +60,8 @@ class LaravelMcpKitServiceProvider extends PackageServiceProvider
         $this->publishes([
             __DIR__.'/../stubs/Livewire/McpTokens.php.stub' => app_path('Livewire/McpTokens.php'),
             __DIR__.'/../stubs/views/mcp-tokens.blade.php.stub' => resource_path('views/livewire/mcp-tokens.blade.php'),
+            __DIR__.'/../stubs/Livewire/McpToggleCard.php.stub' => app_path('Livewire/McpToggleCard.php'),
+            __DIR__.'/../stubs/views/mcp-toggle-card.blade.php.stub' => resource_path('views/livewire/mcp-toggle-card.blade.php'),
         ], 'mcp-kit-ui');
 
         // Register the MCP servers (STDIO + HTTP) declared in routes/ai.php.
@@ -47,6 +71,23 @@ class LaravelMcpKitServiceProvider extends PackageServiceProvider
         if (! $this->app->routesAreCached()) {
             require __DIR__.'/../routes/ai.php';
         }
+    }
+
+    /**
+     * Expose `Mcp::healthCheck('name', fn () => ...)` so a host can register
+     * connectivity checks the generic `system_health` tool reports. The
+     * Registrar is Macroable; the macro just proxies to the HealthRegistry
+     * singleton.
+     */
+    protected function registerHealthCheckMacro(): void
+    {
+        if (Mcp::hasMacro('healthCheck')) {
+            return;
+        }
+
+        Mcp::macro('healthCheck', function (string $name, callable $check): void {
+            app(HealthRegistry::class)->register($name, $check);
+        });
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace CleaniqueCoders\LaravelMcpKit\Tools;
 
 use CleaniqueCoders\LaravelMcpKit\Actions\AssignTask;
+use CleaniqueCoders\LaravelMcpKit\Tools\Concerns\InteractsWithTasks;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -13,6 +14,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Assign a task to someone (or clear it) by its uuid. Pass an empty assignee to unassign. Returns the updated task. This changes state — clients should confirm before calling.')]
 class AssignTaskTool extends McpKitTool
 {
+    use InteractsWithTasks;
+
     protected function ability(): string
     {
         return 'mcp-kit.manage-tasks';

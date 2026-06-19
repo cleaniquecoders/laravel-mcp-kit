@@ -27,6 +27,16 @@ patterns a production MCP server needs.
 - **A runtime on/off toggle**, a **`mcp-kit:doctor`** wiring check, and **gate-first generators**
   (`mcp-kit:make-tool` / `make-resource` / `make-prompt`)
 
+## Preview
+
+A workbench preview of the MCP settings UI ([#16](https://github.com/cleaniquecoders/laravel-mcp-kit/issues/16)) —
+flip the runtime toggle and review system health, the effective config, and the live tool registry, all
+gated on `manage-mcp`. Run it with `composer serve`, then open `/mcp` (see [Workbench](docs/05-development/01-workbench.md)).
+
+![MCP settings — runtime toggle and system health](art/mcp-settings-overview.png)
+
+![MCP settings — effective configuration and the auto-registered tool catalogue](art/mcp-settings-config.png)
+
 ## Requirements
 
 - PHP 8.4+
@@ -41,8 +51,14 @@ php artisan mcp-kit:install   # publishes config + migration (add --oauth to wir
 php artisan migrate
 ```
 
-Then define the two Gate abilities every tool checks — see
-[Installation](docs/01-getting-started/01-installation.md).
+## Abilities
+
+Every tool checks a Gate ability. The kit ships the ability **names** (in `config('mcp-kit.abilities')`);
+your app decides who holds each, mapping them onto its permission system (`Gate::define`, a Policy, or
+spatie/laravel-permission) — see [Installation](docs/01-getting-started/01-installation.md). `whoami` and
+`list_my_abilities` need only an authenticated user.
+
+![MCP Kit abilities — the gate each tool checks](art/mcp-settings-abilities.png)
 
 ## Quick Start
 

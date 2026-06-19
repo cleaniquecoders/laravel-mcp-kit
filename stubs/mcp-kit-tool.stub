@@ -1,0 +1,61 @@
+<?php
+
+namespace {{ namespace }};
+
+use CleaniqueCoders\LaravelMcpKit\Tools\McpKitTool;
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Attributes\Description;
+use Laravel\Mcp\Server\Attributes\Name;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
+
+/**
+ * {{ title }} tool.
+ *
+ * Gate first, validate, then act. For a WRITE tool, remove the #[IsReadOnly]
+ * annotation (so clients gate it) and funnel the change through an Action.
+ */
+#[Name('{{ name }}')]
+#[Description('A description of what this tool does.')]
+#[IsReadOnly]
+class {{ class }} extends McpKitTool
+{
+    /**
+     * The Gate ability required. Define `mcp-kit.{{ ability }}` in your app and,
+     * optionally, map it under config('mcp-kit.abilities').
+     */
+    protected function ability(): string
+    {
+        return 'mcp-kit.{{ ability }}';
+    }
+
+    public function handle(Request $request): Response
+    {
+        // 1. Gate.
+        if ($this->authorizedUser($request) === null) {
+            return $this->unauthorized();
+        }
+
+        // 2. Validate.
+        $validated = $request->validate([
+            //
+        ]);
+
+        // 3. Act — read here, or call an Action for a write. Output public
+        //    identifiers only, never an internal auto-increment id.
+        return Response::json([
+            //
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function schema(JsonSchema $schema): array
+    {
+        return [
+            //
+        ];
+    }
+}

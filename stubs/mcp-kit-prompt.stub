@@ -1,0 +1,45 @@
+<?php
+
+namespace {{ namespace }};
+
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Attributes\Description;
+use Laravel\Mcp\Server\Attributes\Name;
+use Laravel\Mcp\Server\Attributes\Title;
+use Laravel\Mcp\Server\Prompt;
+use Laravel\Mcp\Server\Prompts\Argument;
+
+/**
+ * {{ title }} prompt — a reusable, read-first, human-gated runbook the client
+ * can offer as a slash command.
+ */
+#[Name('{{ name }}')]
+#[Title('{{ title }}')]
+#[Description('A description of what this runbook does.')]
+class {{ class }} extends Prompt
+{
+    /**
+     * @return array<int, Argument>
+     */
+    public function arguments(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public function handle(Request $request): Response
+    {
+        return Response::text(<<<'PROMPT'
+        You are running the {{ title }} runbook. Follow it exactly:
+
+        1. READ first — gather facts with the read tools before forming a view.
+        2. DIAGNOSE — summarise what the evidence shows. Never guess.
+        3. PROPOSE — list the changes as a numbered plan, but do NOT run any
+           state-changing tool yet.
+        4. STOP at the human gate — act only after explicit approval, one step
+           at a time, confirming each result.
+        PROMPT);
+    }
+}

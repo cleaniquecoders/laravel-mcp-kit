@@ -2,6 +2,7 @@
 
 namespace CleaniqueCoders\LaravelMcpKit\Tools;
 
+use CleaniqueCoders\LaravelMcpKit\Tools\Concerns\InteractsWithTasks;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -14,6 +15,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsReadOnly]
 class GetTaskTool extends McpKitTool
 {
+    use InteractsWithTasks;
+
     protected function ability(): string
     {
         return 'mcp-kit.view-tasks';

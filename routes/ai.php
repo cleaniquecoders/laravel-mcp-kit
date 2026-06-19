@@ -1,6 +1,8 @@
 <?php
 
+use CleaniqueCoders\LaravelMcpKit\Http\Controllers\DownloadExportController;
 use CleaniqueCoders\LaravelMcpKit\Servers\TaskServer;
+use CleaniqueCoders\LaravelMcpKit\Support\McpToggle;
 use Illuminate\Support\Facades\Route;
 use Laravel\Mcp\Facades\Mcp;
 use Laravel\Passport\Passport;
@@ -17,9 +19,21 @@ use Laravel\Passport\Passport;
 |
 */
 
-if (! config('mcp-kit.enabled', true)) {
+// Master switch (MCP_KIT_ENABLED) AND the runtime toggle (cache-backed) must
+// both be on. McpToggle::enabled() folds the env flag in, so flipping the
+// toggle off turns the server dark without a redeploy. See Support\McpToggle.
+if (! McpToggle::enabled()) {
     return;
 }
+
+// Signed, short-lived download endpoint for export artifacts (export_logs and
+// any host export_* tool). The signature IS the capability — the `signed`
+// middleware rejects tampered/expired URLs before the controller runs. Lives
+// at top level because a stdio-produced export still downloads over HTTP.
+Route::get(
+    trim((string) config('mcp-kit.ops.export.route', 'mcp-kit/exports'), '/').'/{file}',
+    DownloadExportController::class
+)->middleware('signed')->name('mcp-kit.download');
 
 // STDIO transport — Claude Code runs the server itself as a local process
 // (`php artisan mcp:start mcp-kit`). Implicit OS-user trust, no auth.

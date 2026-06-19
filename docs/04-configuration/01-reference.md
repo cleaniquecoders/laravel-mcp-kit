@@ -20,6 +20,20 @@ middleware, the OAuth block, and the ability names. Every value is env-overridab
 | `MCP_KIT_OAUTH_AUTH_VIEW` | `mcp-kit::authorize` | Consent view (or `false` to keep Passport's default) |
 | `MCP_KIT_OAUTH_LOAD_MIGRATIONS` | `true` | Auto-load Passport's `oauth_*` migrations |
 | `MCP_KIT_OAUTH_OPENID_CONFIG` | `true` | Alias `/.well-known/openid-configuration` to the auth-server metadata |
+| `MCP_KIT_TOGGLE_DEFAULT` | `true` | Default runtime-toggle state before it is ever set |
+| `MCP_KIT_TOGGLE_STORE` | `null` | Cache store backing the runtime toggle (null = app default) |
+| `MCP_KIT_TOGGLE_KEY` | `mcp-kit.runtime-enabled` | Cache key the toggle is stored under |
+| `MCP_KIT_LOGS_PATH` | `storage/logs` | Directory the log tools read |
+| `MCP_KIT_LOGS_MAX_LINES` | `500` | Hard cap on lines/entries a log tool returns |
+| `MCP_KIT_EXPORT_DISK` | `local` | Disk exports are written to before signing a URL |
+| `MCP_KIT_EXPORT_DIRECTORY` | `mcp-kit/exports` | Directory on that disk for export artifacts |
+| `MCP_KIT_EXPORT_TTL` | `15` | Signed download URL lifetime (minutes) |
+| `MCP_KIT_EXPORT_ROUTE` | `mcp-kit/exports` | URI prefix for the signed download route |
+| `MCP_KIT_TOKEN_PREFIX` | `mcp-kit` | Name prefix scoping the MCP token tools |
+
+> The runtime toggle layers **under** `MCP_KIT_ENABLED` (the deploy-time master switch). Use a shared
+> cache store (redis/database/file, not `array`) so web, queue, and CLI processes agree. Flip it with
+> `php artisan mcp-kit:toggle on|off|status`.
 
 ## Computed middleware
 
@@ -35,10 +49,23 @@ Set `web.middleware` to an explicit array to take full control of the stack.
 The Gate abilities each tool checks. The **host app** is responsible for defining these gates (via
 `Gate::define`, a Policy, or a permission package). They are listed in config for reference:
 
-| Config key | Ability name |
-|---|---|
-| `abilities.view-tasks` | `mcp-kit.view-tasks` |
-| `abilities.manage-tasks` | `mcp-kit.manage-tasks` |
+| Config key | Ability name | Used by |
+|---|---|---|
+| `abilities.view-tasks` | `mcp-kit.view-tasks` | task read tools |
+| `abilities.manage-tasks` | `mcp-kit.manage-tasks` | task write tools |
+| `abilities.view-logs` | `mcp-kit.view-logs` | `tail_logs`, `search_logs` |
+| `abilities.export-logs` | `mcp-kit.export-logs` | `export_logs` |
+| `abilities.view-jobs` | `mcp-kit.view-jobs` | `list_failed_jobs`, `queue_status` |
+| `abilities.manage-jobs` | `mcp-kit.manage-jobs` | `retry_failed_job` |
+| `abilities.view-system` | `mcp-kit.view-system` | `system_health`, `scheduled_tasks` |
+| `abilities.view-audits` | `mcp-kit.view-audits` | `list_audits` |
+| `abilities.view-activities` | `mcp-kit.view-activities` | `list_activities` |
+| `abilities.view-permissions` | `mcp-kit.view-permissions` | RBAC tools |
+| `abilities.manage-tokens` | `mcp-kit.manage-tokens` | MCP token tools |
+| `abilities.manage-mcp` | `mcp-kit.manage-mcp` | runtime toggle UI/card |
+
+`whoami` and `list_my_abilities` need only an authenticated user — they carry no specific ability so an
+agent can always self-orient.
 
 ## Next Steps
 

@@ -2,13 +2,6 @@
 
 namespace CleaniqueCoders\LaravelMcpKit\Servers;
 
-use CleaniqueCoders\LaravelMcpKit\Prompts\TriageRunbookPrompt;
-use CleaniqueCoders\LaravelMcpKit\Resources\TaskBoardResource;
-use CleaniqueCoders\LaravelMcpKit\Tools\AssignTaskTool;
-use CleaniqueCoders\LaravelMcpKit\Tools\CompleteTaskTool;
-use CleaniqueCoders\LaravelMcpKit\Tools\CreateTaskTool;
-use CleaniqueCoders\LaravelMcpKit\Tools\GetTaskTool;
-use CleaniqueCoders\LaravelMcpKit\Tools\ListTasksTool;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -23,38 +16,40 @@ use Laravel\Mcp\Server\Attributes\Version;
  * safety rules (writes wait for the gate) so it behaves well by default.
  */
 #[Name('mcp-kit')]
-#[Version('1.0.0')]
+#[Version('1.1.0')]
 #[Instructions(<<<'INSTRUCTIONS'
-MCP Kit — a task-management MCP server for Laravel.
+MCP Kit — a Laravel MCP server: a reference task domain plus a generic ops
+toolbox (identity, health, logs, jobs, and — when the packages are installed —
+audits, tokens, RBAC and activity).
 
 Conventions:
-- Identify a task by its `uuid` only — never an internal numeric id.
-- Every tool is gated by an ability on your token's user. An unauthorized
-  tool returns an error, not partial data.
+- Identify records by their public `uuid` / `id`, never an internal numeric id
+  the kit hides.
+- Every tool is gated by an ability on your token's user. An unauthorized tool
+  returns an error, not partial data.
 - Task status flows: open → in_progress → done.
 
 Workflow:
-- Read first. Use list_tasks / get_task and the task_board resource to
-  ground yourself before proposing anything.
-- create_task and complete_task CHANGE STATE. Treat them as gated: propose
-  the change, then wait for human approval before calling them.
-- The triage_runbook prompt encodes the full read-first, human-gated flow.
+- Orient first. Call `whoami` and `list_my_abilities` to learn who you are and
+  what you may do, then read with list_tasks / get_task / system_health /
+  tail_logs before proposing anything.
+- Tools WITHOUT a read-only annotation (create_task, complete_task,
+  retry_failed_job, issue/revoke_mcp_token) CHANGE STATE. Propose the change,
+  then wait for human approval before calling them.
+- The triage_runbook and support_runbook prompts encode the full read-first,
+  human-gated flow.
 INSTRUCTIONS)]
 class TaskServer extends Server
 {
-    protected array $tools = [
-        ListTasksTool::class,
-        GetTaskTool::class,
-        CreateTaskTool::class,
-        CompleteTaskTool::class,
-        AssignTaskTool::class,
-    ];
-
-    protected array $resources = [
-        TaskBoardResource::class,
-    ];
-
-    protected array $prompts = [
-        TriageRunbookPrompt::class,
-    ];
+    /**
+     * Build the registry in boot() (not as static arrays) so Tier-2 tools can
+     * auto-register based on which packages the host has installed. See
+     * {@see ToolRegistry}.
+     */
+    protected function boot(): void
+    {
+        $this->tools = ToolRegistry::tools();
+        $this->resources = ToolRegistry::resources();
+        $this->prompts = ToolRegistry::prompts();
+    }
 }

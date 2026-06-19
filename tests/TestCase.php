@@ -28,6 +28,18 @@ class TestCase extends Orchestra
         // stands in. The tools only ever check the ability name.
         Gate::define('mcp-kit.view-tasks', fn ($user) => in_array('view', $user->grants ?? [], true));
         Gate::define('mcp-kit.manage-tasks', fn ($user) => in_array('manage', $user->grants ?? [], true));
+
+        // Generic-toolbox gates: each configured ability is granted when its
+        // config KEY (or '*') appears in the user's grants array. Lets a test
+        // user hold, say, ['view-logs'] or ['*'] for everything.
+        foreach ((array) config('mcp-kit.abilities', []) as $key => $ability) {
+            if (in_array($key, ['view-tasks', 'manage-tasks'], true) || ! is_string($ability)) {
+                continue;
+            }
+
+            Gate::define($ability, fn ($user): bool => in_array('*', $user->grants ?? [], true)
+                || in_array($key, $user->grants ?? [], true));
+        }
     }
 
     protected function getPackageProviders($app)
@@ -47,12 +59,37 @@ class TestCase extends Orchestra
     {
         config()->set('database.default', 'testing');
 
+        // Pin a valid encryption key. Testbench only applies its default
+        // app.key when the APP_KEY env is ABSENT (Env::has check); some CI
+        // matrices export an empty APP_KEY, so the default is skipped and the
+        // encryption-dependent paths (Passport's OAuth flow, signed URLs) blow
+        // up with MissingAppKeyException. Set it unconditionally here.
+        config()->set('app.key', 'AckfSECXIvnK5r28GVIWUAxmbBSjTsmF');
+
+        // The runtime toggle is cache-backed; use the array store in tests so
+        // it never reaches for a (non-existent) database cache table.
+        config()->set('cache.default', 'array');
+
         // Resolve the demo User fixture as the auth provider model so the
         // mcp-kit:token command finds users via config('auth.providers.users.model').
         config()->set('auth.providers.users.model', User::class);
 
         // Define the `sanctum` guard the HTTP endpoint authenticates with.
         config()->set('auth.guards.sanctum', ['driver' => 'sanctum', 'provider' => 'users']);
+
+        // Queue wiring for the failed-jobs tools: a database queue connection
+        // to push retried jobs onto, and the uuid failed-jobs provider.
+        config()->set('queue.connections.database', [
+            'driver' => 'database',
+            'table' => 'jobs',
+            'queue' => 'default',
+            'connection' => 'testing',
+        ]);
+        config()->set('queue.failed', [
+            'driver' => 'database-uuids',
+            'database' => 'testing',
+            'table' => 'failed_jobs',
+        ]);
 
         // Load the package migration (kept as a .php.stub for publishing).
         foreach (File::allFiles(__DIR__.'/../database/migrations') as $migration) {
@@ -77,6 +114,27 @@ class TestCase extends Orchestra
             $table->timestamp('last_used_at')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
+        });
+
+        // Core Laravel queue tables the jobs tools read/write.
+        Schema::create('failed_jobs', function (Blueprint $table) {
+            $table->id();
+            $table->string('uuid')->unique();
+            $table->text('connection');
+            $table->text('queue');
+            $table->longText('payload');
+            $table->longText('exception');
+            $table->timestamp('failed_at')->useCurrent();
+        });
+
+        Schema::create('jobs', function (Blueprint $table) {
+            $table->id();
+            $table->string('queue')->index();
+            $table->longText('payload');
+            $table->unsignedTinyInteger('attempts');
+            $table->unsignedInteger('reserved_at')->nullable();
+            $table->unsignedInteger('available_at');
+            $table->unsignedInteger('created_at');
         });
     }
 }

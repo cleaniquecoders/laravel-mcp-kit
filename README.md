@@ -14,12 +14,18 @@ patterns a production MCP server needs.
 ## Features
 
 - **Tools** (read + write), **Resources** (read-by-URI context), and **Prompts** (reusable templates)
+- **A generic ops toolbox** — `whoami`/abilities, `system_health`, logs (tail/search/export),
+  failed-jobs + queue + scheduler, and — when the packages are present — audits, MCP token management,
+  RBAC, and activity. [See the catalogue.](docs/02-architecture/03-generic-toolbox.md)
+- **Opt-in by presence** — Tier-2 tools auto-register only when their backing package (and table) exist
 - **Per-tool authorization** via Gate abilities — MCP is a third UI, never a back door
 - **uuid-only** inputs/outputs — the internal auto-increment id never leaks to the agent
 - **Write tools funnel through Action classes** — the agent, web UI, and CLI share one rule set
 - **STDIO** (local) and **Streamable HTTP** (remote) transports
 - **Two HTTP auth methods** — Sanctum personal access tokens *and* OAuth 2.1 (Passport) — on one endpoint
 - **Honest annotations** (`#[IsReadOnly]`) so clients know which tools change state and gate them
+- **A runtime on/off toggle**, a **`mcp-kit:doctor`** wiring check, and **gate-first generators**
+  (`mcp-kit:make-tool` / `make-resource` / `make-prompt`)
 
 ## Requirements
 

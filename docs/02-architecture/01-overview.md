@@ -1,11 +1,12 @@
 # Overview
 
-The kit ships a small task-management domain as a working reference. The value is the patterns — gated
-tools, Actions, uuid-only output — ready to copy or extend.
+The kit ships a small task-management domain as a working reference, **plus a generic ops toolbox**
+(identity, health, logs, jobs, and — when the packages are present — audits, tokens, RBAC, activity).
+The value is the patterns — gated tools, Actions, uuid-only output — ready to copy or extend.
 
 ## What it exposes
 
-### Tools
+### Task tools (the reference domain)
 
 | Tool | Kind | Ability | Notes |
 |---|---|---|---|
@@ -15,13 +16,21 @@ tools, Actions, uuid-only output — ready to copy or extend.
 | `complete_task` | write | manage | Marks done via the `CompleteTask` action |
 | `assign_task` | write | manage | Assigns/clears assignee via the `AssignTask` action |
 
+### Generic toolbox
+
+Identity, health, logs, and jobs tools (always on), plus package-gated audit/token/RBAC/activity tools
+that auto-register when their backing package is installed. See **[Generic toolbox](03-generic-toolbox.md)**
+for the full catalogue and the Tier-3 infrastructure (runtime toggle, health registry, signed-URL
+exports, generators, `mcp-kit:doctor`).
+
 ### Resource
 
 `task_board` (`mcp-kit://tasks/board`) — tasks grouped by status, as read-only context.
 
-### Prompt
+### Prompts
 
-`triage_runbook` — a parameterised, read-first, human-gated triage runbook.
+- `triage_runbook` — a parameterised, read-first, human-gated triage runbook for the task domain.
+- `support_runbook` — the generic read-first, human-gated investigation flow over the ops tools.
 
 ## Where the primitives live
 
@@ -47,4 +56,5 @@ Both are gated behind `config('mcp-kit.enabled')`.
 ## Next Steps
 
 - [Conventions](02-conventions.md) — the rules each tool follows.
+- [Generic toolbox](03-generic-toolbox.md) — the ops tools and Tier-3 infrastructure.
 - [Configuration](../04-configuration/README.md) — toggles and env vars.

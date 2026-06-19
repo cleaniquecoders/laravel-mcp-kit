@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Livewire;
+
+use CleaniqueCoders\LaravelMcpKit\Support\McpToggle;
+use Livewire\Attributes\Computed;
+use Livewire\Component;
+
+/**
+ * A settings card to turn the MCP server on/off at runtime — published by
+ * laravel-mcp-kit.
+ *
+ *   php artisan vendor:publish --tag="mcp-kit-ui"
+ *
+ * Gated on the `manage-mcp` ability. The env flag MCP_KIT_ENABLED stays the
+ * master kill-switch; this only flips the cache-backed runtime toggle (and
+ * clears the route cache so it takes effect immediately).
+ *
+ * Requires livewire/livewire and livewire/flux. Restyle to match your app.
+ */
+class McpToggleCard extends Component
+{
+    public function mount(): void
+    {
+        abort_unless(
+            auth()->user()?->can(config('mcp-kit.abilities.manage-mcp', 'mcp-kit.manage-mcp')),
+            403,
+        );
+    }
+
+    #[Computed]
+    public function enabled(): bool
+    {
+        return McpToggle::enabled();
+    }
+
+    #[Computed]
+    public function masterSwitch(): bool
+    {
+        return (bool) config('mcp-kit.enabled', true);
+    }
+
+    public function enable(): void
+    {
+        $this->authorizeToggle();
+
+        McpToggle::enable();
+        unset($this->enabled);
+    }
+
+    public function disable(): void
+    {
+        $this->authorizeToggle();
+
+        McpToggle::disable();
+        unset($this->enabled);
+    }
+
+    protected function authorizeToggle(): void
+    {
+        abort_unless(
+            auth()->user()?->can(config('mcp-kit.abilities.manage-mcp', 'mcp-kit.manage-mcp')),
+            403,
+        );
+    }
+
+    public function render()
+    {
+        return view('livewire.mcp-toggle-card');
+    }
+}

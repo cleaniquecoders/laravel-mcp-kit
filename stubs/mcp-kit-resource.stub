@@ -1,0 +1,41 @@
+<?php
+
+namespace {{ namespace }};
+
+use Illuminate\Contracts\Auth\Authenticatable;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Attributes\Description;
+use Laravel\Mcp\Server\Attributes\MimeType;
+use Laravel\Mcp\Server\Attributes\Name;
+use Laravel\Mcp\Server\Attributes\Title;
+use Laravel\Mcp\Server\Attributes\Uri;
+use Laravel\Mcp\Server\Resource;
+
+/**
+ * {{ title }} resource — read-only context an agent can pull by URI.
+ *
+ * A resource is a noun (a document), not a verb, but it is still gated on the
+ * token holder: same auth rules as a tool.
+ */
+#[Name('{{ name }}')]
+#[Title('{{ title }}')]
+#[Description('A description of what this resource contains.')]
+#[Uri('mcp-kit://{{ name }}')]
+#[MimeType('application/json')]
+class {{ class }} extends Resource
+{
+    public function handle(Request $request): Response
+    {
+        $user = $request->user();
+
+        if (! $user instanceof Authenticatable || ! $user->can('mcp-kit.{{ name }}')) {
+            return Response::error("Unauthorized — reading this resource requires the 'mcp-kit.{{ name }}' ability.");
+        }
+
+        return Response::json([
+            'generated_at' => now()->toIso8601String(),
+            //
+        ]);
+    }
+}

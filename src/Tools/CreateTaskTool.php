@@ -3,6 +3,7 @@
 namespace CleaniqueCoders\LaravelMcpKit\Tools;
 
 use CleaniqueCoders\LaravelMcpKit\Actions\CreateTask;
+use CleaniqueCoders\LaravelMcpKit\Tools\Concerns\InteractsWithTasks;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -19,6 +20,8 @@ use Laravel\Mcp\Server\Attributes\Name;
 #[Description('Create a new task in "open" status. Returns the created task. This changes state — clients should confirm before calling.')]
 class CreateTaskTool extends McpKitTool
 {
+    use InteractsWithTasks;
+
     protected function ability(): string
     {
         return 'mcp-kit.manage-tasks';

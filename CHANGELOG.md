@@ -2,6 +2,28 @@
 
 All notable changes to `cleaniquecoders/laravel-mcp-kit` will be documented in this file.
 
+## 1.1.1 - 2026-06-19
+
+A docs + developer-tooling patch on top of 1.1.0 (the generic toolbox). The installed package
+(`src/`, `config/`, `routes/`, `stubs/`) is unchanged — this is documentation and workbench tooling.
+
+### Docs
+
+- README **Abilities** section showing the gate each tool checks, and a **Preview** of the MCP settings
+  UI — screenshots under `art/` (export-ignored, so they render on GitHub but stay out of the dist).
+- Workbench guide gains an "MCP settings UI (preview)" section with screenshots.
+
+### Workbench (testbed for #16)
+
+- A build-free Livewire **MCP settings page** (`/mcp`) that flips the real runtime toggle and shows
+  system health, the effective config, and the live tool registry — gated on `manage-mcp`. Try it with
+  `composer serve` then open `/mcp` (it self-authenticates as the demo manager).
+- `bin/serve.sh` now **self-heals** when the port is busy: it reclaims a stale workbench server on the
+  port (the usual "Address already in use" cause), and only falls back to a free port — with a warning —
+  if an unrelated process owns it. It never kills processes it didn't start.
+
+Tracks the MCP Configuration UI epic (#16).
+
 ## 1.1.0 - 2026-06-19
 
 The **generic toolbox** line on top of the task-demo foundation

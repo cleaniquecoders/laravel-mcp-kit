@@ -28,6 +28,7 @@
         "laravel/passport": "^13",
         "laravel/pint": "^1.14",
         "laravel/sanctum": "^4.0",
+        "livewire/livewire": "^3.5",
         "nunomaduro/collision": "^8.8",
         "orchestra/testbench": "^11.0.0||^10.0.0||^9.0.0",
         "pestphp/pest": "^4.0",

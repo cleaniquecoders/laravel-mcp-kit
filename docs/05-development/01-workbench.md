@@ -54,6 +54,22 @@ curl -X POST http://127.0.0.1:8000/oauth/register \
 For the full OAuth browser flow, visit `/login` first (a demo-only auto-login) so Passport's consent
 screen has a session.
 
+## MCP settings UI (preview)
+
+A browser preview of the planned MCP Configuration UI ([#16](https://github.com/cleaniquecoders/laravel-mcp-kit/issues/16))
+ships in the workbench:
+
+```bash
+composer serve
+# then in a browser:
+open http://127.0.0.1:8000/login   # sign in as the demo manager (holds `manage-mcp`)
+open http://127.0.0.1:8000/mcp     # the settings page
+```
+
+It flips the runtime toggle (the real `Support\McpToggle`) and shows the effective config, health, and
+registered tools — gated on `manage-mcp`. It's a build-free Livewire harness (Tailwind via CDN); the
+publishable version will use Flux. See `workbench/app/Livewire/McpSettings.php`.
+
 ## Next Steps
 
 - [Testing](02-testing.md) — run the suite.

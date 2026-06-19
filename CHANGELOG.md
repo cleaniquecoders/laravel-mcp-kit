@@ -2,6 +2,26 @@
 
 All notable changes to `cleaniquecoders/laravel-mcp-kit` will be documented in this file.
 
+## 1.2.0 - 2026-06-19
+
+The **MCP settings & operations UI** ([#16](https://github.com/cleaniquecoders/laravel-mcp-kit/issues/16)) — a publishable, `manage-mcp`-gated browser page to operate the server, plus the shared read models behind it.
+
+### Settings UI
+
+- **`App\Livewire\McpSettings`** — a publishable Flux page (publish with `php artisan mcp-kit:install --ui`, then route it). Panels: runtime **toggle** (the only writable control), **health**, **doctor**, read-only **effective configuration**, **registered tools** (Tier-2 flagged), the **abilities** map, and the **tokens** card when present.
+
+### Shared read models (one source of truth)
+
+- **`Support\SystemHealth`** — db/cache/queue/storage probes + `Mcp::healthCheck()` results + `spatie/laravel-health` fold-in, extracted from `SystemHealthTool` (which now delegates). The `system_health` tool and the UI report identical checks.
+- **`Support\McpConfigSnapshot`** — effective config + `doctor()` checks + the tool registry. `mcp-kit:doctor` now renders `McpConfigSnapshot::doctor()`, so the CLI and the UI never drift.
+
+### Also
+
+- `mcp-kit:install --ui` now publishes the settings page (alongside the token + toggle cards) and prints the route to add.
+- The workbench preview (`composer serve` → `/mcp`) reads the same services, so it stays in lockstep with the shipped UI.
+
+106 tests passing, Pint + larastan clean.
+
 ## 1.1.1 - 2026-06-19
 
 A docs + developer-tooling patch on top of 1.1.0 (the generic toolbox). The installed package

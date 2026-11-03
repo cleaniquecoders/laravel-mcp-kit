@@ -2,6 +2,18 @@
 
 All notable changes to `cleaniquecoders/laravel-mcp-kit` will be documented in this file.
 
+## 1.3.0 - 2026-11-03
+
+Dependency refresh. Adds support for **laravel/mcp 1.x** while keeping 0.9 support, so nothing breaks for existing installs.
+
+### Changed
+
+- `laravel/mcp` constraint widened to `^0.9.0|^1.1.2` ([#27](https://github.com/cleaniquecoders/laravel-mcp-kit/pull/27), widened from Dependabot's `^1.1.2`). Tested on 0.9.0 and 1.1.2.
+- Dev: `livewire/livewire` `^3.5` to `^4.4` ([#22](https://github.com/cleaniquecoders/laravel-mcp-kit/pull/22)). Livewire is not a runtime requirement of the package.
+- CI: `actions/checkout` v6 to v7 ([#20](https://github.com/cleaniquecoders/laravel-mcp-kit/pull/20)).
+
+106 tests passing on laravel/mcp 1.1.2 and 0.9.0. Pint and larastan clean.
+
 ## 1.2.0 - 2026-06-19
 
 The **MCP settings & operations UI** ([#16](https://github.com/cleaniquecoders/laravel-mcp-kit/issues/16)) — a publishable, `manage-mcp`-gated browser page to operate the server, plus the shared read models behind it.
